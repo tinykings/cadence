@@ -114,7 +114,7 @@
 }
 
 html {
-    font-size: 16px;
+    font-size: 18px;
     scroll-behavior: smooth;
     /* Prevent pull-to-refresh on mobile */
     overscroll-behavior-y: contain;
@@ -222,7 +222,7 @@ body {
 
 .stat-value {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: 500;
     color: var(--accent-primary);
     display: block;
@@ -231,7 +231,7 @@ body {
 }
 
 .stat-label {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: var(--text-secondary);
 }
 
@@ -344,7 +344,7 @@ body {
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-sm);
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: var(--text-secondary);
     background: var(--bg-tertiary);
     transition: all var(--transition-fast);
@@ -391,7 +391,7 @@ body {
 
 .day-hours {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     color: var(--accent-primary);
     font-weight: 500;
 }
@@ -1025,6 +1025,10 @@ body {
 
 /* ===== Responsive ===== */
 @media (max-width: 400px) {
+    html {
+        font-size: 16px;
+    }
+    
     .app-container {
         padding: 16px 12px 100px;
     }
@@ -1038,7 +1042,7 @@ body {
     }
     
     .stat-value {
-        font-size: 1.6rem;
+        font-size: 1.8rem;
     }
     
     .current-month-section {
@@ -1050,11 +1054,11 @@ body {
     }
     
     .calendar-day {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
     }
     
     .day-hours {
-        font-size: 0.6rem;
+        font-size: 0.65rem;
     }
 }
 
@@ -1153,6 +1157,16 @@ body {
 @media (display-mode: standalone) {
     .install-banner {
         display: none;
+    }
+    
+    /* Hide scrollbar in PWA mode */
+    body {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+    }
+    
+    body::-webkit-scrollbar {
+        display: none; /* Chrome/Safari/Opera */
     }
 }
 
