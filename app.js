@@ -11,11 +11,20 @@ class CadenceApp {
     loadData() {
         const stored = localStorage.getItem('cadence-data');
         if (stored) {
-            return JSON.parse(stored);
+            const data = JSON.parse(stored);
+            // Migrate old format (just hours) to new format (hours + credit)
+            if (data.hours) {
+                for (const key in data.hours) {
+                    if (typeof data.hours[key] === 'number') {
+                        data.hours[key] = { hours: data.hours[key], credit: 0 };
+                    }
+                }
+            }
+            return data;
         }
         return {
             goal: 600,
-            hours: {} // Format: { "2024-09-15": 3.5, "2024-09-16": 2 }
+            hours: {} // Format: { "2024-09-15": { hours: 3.5, credit: 1 }, ... }
         };
     }
 
@@ -81,25 +90,30 @@ class CadenceApp {
         return previous.reverse(); // Most recent first
     }
 
-    // ===== Hours Calculation =====
-    getHoursForDay(year, month, day) {
+    // ===== Hours & Credit Calculation =====
+    getDayData(year, month, day) {
         const key = this.formatDateKey(year, month, day);
-        return this.data.hours[key] || 0;
+        return this.data.hours[key] || { hours: 0, credit: 0 };
     }
 
-    setHoursForDay(year, month, day, hours) {
+    getDayTotal(year, month, day) {
+        const data = this.getDayData(year, month, day);
+        return data.hours + data.credit;
+    }
+
+    setDayData(year, month, day, hours, credit) {
         const key = this.formatDateKey(year, month, day);
-        if (hours > 0) {
-            this.data.hours[key] = hours;
+        if (hours > 0 || credit > 0) {
+            this.data.hours[key] = { hours, credit };
         } else {
             delete this.data.hours[key];
         }
         this.saveData();
     }
 
-    addHoursForDay(year, month, day, hours) {
-        const current = this.getHoursForDay(year, month, day);
-        this.setHoursForDay(year, month, day, current + hours);
+    addDayData(year, month, day, hours, credit) {
+        const current = this.getDayData(year, month, day);
+        this.setDayData(year, month, day, current.hours + hours, current.credit + credit);
     }
 
     formatDateKey(year, month, day) {
@@ -108,15 +122,18 @@ class CadenceApp {
         return `${year}-${m}-${d}`;
     }
 
-    getMonthTotal(year, month) {
-        let total = 0;
+    getMonthTotals(year, month) {
+        let hours = 0;
+        let credit = 0;
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         
         for (let d = 1; d <= daysInMonth; d++) {
-            total += this.getHoursForDay(year, month, d);
+            const dayData = this.getDayData(year, month, d);
+            hours += dayData.hours;
+            credit += dayData.credit;
         }
         
-        return total;
+        return { hours, credit, total: hours + credit };
     }
 
     getYearTotal() {
@@ -124,7 +141,8 @@ class CadenceApp {
         let total = 0;
         
         for (const m of months) {
-            total += this.getMonthTotal(m.year, m.month);
+            const monthTotals = this.getMonthTotals(m.year, m.month);
+            total += monthTotals.total;
         }
         
         return total;
@@ -178,11 +196,15 @@ class CadenceApp {
             monthlyAvg: document.getElementById('monthlyAvg'),
             currentMonthName: document.getElementById('currentMonthName'),
             currentCalendar: document.getElementById('currentCalendar'),
+            currentMonthHours: document.getElementById('currentMonthHours'),
+            currentMonthCredit: document.getElementById('currentMonthCredit'),
             currentMonthTotal: document.getElementById('currentMonthTotal'),
             previousMonths: document.getElementById('previousMonths'),
             addTimeBtn: document.getElementById('addTimeBtn'),
             addTimeModal: document.getElementById('addTimeModal'),
+            addModalTitle: document.getElementById('addModalTitle'),
             hoursInput: document.getElementById('hoursInput'),
+            creditInput: document.getElementById('creditInput'),
             modalCalendar: document.getElementById('modalCalendar'),
             selectedDay: document.getElementById('selectedDay'),
             confirmAdd: document.getElementById('confirmAdd'),
@@ -268,8 +290,23 @@ class CadenceApp {
         this.elements.currentMonthName.textContent = monthName;
         this.elements.currentCalendar.innerHTML = this.generateCalendarHTML(year, month, today);
         
-        const monthTotal = this.getMonthTotal(year, month);
-        this.elements.currentMonthTotal.textContent = `${monthTotal.toFixed(1).replace(/\.0$/, '')} hrs`;
+        // Add click handlers to calendar days for editing
+        const dayElements = this.elements.currentCalendar.querySelectorAll('.calendar-day:not(.empty)');
+        dayElements.forEach(dayEl => {
+            dayEl.addEventListener('click', () => {
+                const day = parseInt(dayEl.querySelector('.day-number').textContent);
+                this.openAddModal(day);
+            });
+        });
+        
+        const totals = this.getMonthTotals(year, month);
+        this.elements.currentMonthHours.textContent = this.formatNumber(totals.hours);
+        this.elements.currentMonthCredit.textContent = this.formatNumber(totals.credit);
+        this.elements.currentMonthTotal.textContent = this.formatNumber(totals.total);
+    }
+
+    formatNumber(num) {
+        return num.toFixed(1).replace(/\.0$/, '');
     }
 
     generateCalendarHTML(year, month, highlightDay = null) {
@@ -294,8 +331,8 @@ class CadenceApp {
         
         // Days of the month
         for (let d = 1; d <= daysInMonth; d++) {
-            const hours = this.getHoursForDay(year, month, d);
-            const hasHours = hours > 0;
+            const dayTotal = this.getDayTotal(year, month, d);
+            const hasHours = dayTotal > 0;
             const isToday = d === todayDate;
             
             let classes = 'calendar-day';
@@ -305,7 +342,7 @@ class CadenceApp {
             html += `
                 <div class="${classes}">
                     <span class="day-number">${d}</span>
-                    ${hasHours ? `<span class="day-hours">${hours}h</span>` : ''}
+                    ${hasHours ? `<span class="day-hours">${this.formatNumber(dayTotal)}h</span>` : ''}
                 </div>
             `;
         }
@@ -328,19 +365,33 @@ class CadenceApp {
                 month: 'long',
                 year: 'numeric'
             });
-            const total = this.getMonthTotal(m.year, m.month);
-            const hasHours = total > 0;
+            const totals = this.getMonthTotals(m.year, m.month);
+            const hasHours = totals.total > 0;
             
             html += `
                 <div class="month-item" data-year="${m.year}" data-month="${m.month}">
                     <div class="month-item-header">
                         <span class="month-item-name">${monthName}</span>
-                        <span class="month-item-hours ${hasHours ? 'has-hours' : ''}">${total.toFixed(1).replace(/\.0$/, '')} hrs</span>
+                        <span class="month-item-hours ${hasHours ? 'has-hours' : ''}">${this.formatNumber(totals.total)} hrs</span>
                         <span class="month-item-expand">▼</span>
                     </div>
                     <div class="month-item-calendar">
                         <div class="calendar">
                             ${this.generateCalendarHTML(m.year, m.month)}
+                        </div>
+                        <div class="month-totals">
+                            <div class="month-total-row">
+                                <span>Hours</span>
+                                <span>${this.formatNumber(totals.hours)}</span>
+                            </div>
+                            <div class="month-total-row">
+                                <span>Credit</span>
+                                <span>${this.formatNumber(totals.credit)}</span>
+                            </div>
+                            <div class="month-total-row total">
+                                <span>Total</span>
+                                <span>${this.formatNumber(totals.total)}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -360,14 +411,18 @@ class CadenceApp {
     }
 
     // ===== Modal Handlers =====
-    openAddModal() {
+    openAddModal(selectedDay = null) {
         const year = this.currentDate.getFullYear();
         const month = this.currentDate.getMonth();
         const today = this.currentDate.getDate();
+        const dayToSelect = selectedDay || today;
         
         // Render modal calendar
-        this.elements.modalCalendar.innerHTML = this.generateModalCalendarHTML(year, month, today);
-        this.elements.selectedDay.value = today;
+        this.elements.modalCalendar.innerHTML = this.generateModalCalendarHTML(year, month, dayToSelect);
+        this.elements.selectedDay.value = dayToSelect;
+        
+        // Pre-fill with existing data for selected day
+        this.updateModalInputsForDay(year, month, dayToSelect);
         
         // Add click handlers to calendar days
         const dayElements = this.elements.modalCalendar.querySelectorAll('.calendar-day:not(.empty)');
@@ -380,16 +435,27 @@ class CadenceApp {
                 // Add selected class to clicked day
                 dayEl.classList.add('selected');
                 // Update hidden input
-                this.elements.selectedDay.value = dayEl.dataset.day;
+                const day = parseInt(dayEl.dataset.day);
+                this.elements.selectedDay.value = day;
+                // Update inputs with this day's data
+                this.updateModalInputsForDay(year, month, day);
             });
         });
-        
-        // Reset hours input
-        this.elements.hoursInput.value = '';
         
         // Show modal
         this.elements.addTimeModal.classList.add('active');
         this.elements.hoursInput.focus();
+    }
+
+    updateModalInputsForDay(year, month, day) {
+        const dayData = this.getDayData(year, month, day);
+        const hasData = dayData.hours > 0 || dayData.credit > 0;
+        
+        this.elements.hoursInput.value = dayData.hours > 0 ? dayData.hours : '';
+        this.elements.creditInput.value = dayData.credit > 0 ? dayData.credit : '';
+        
+        // Update modal title based on whether we're editing or adding
+        this.elements.addModalTitle.textContent = hasData ? 'Edit Day' : 'Add Hours';
     }
 
     generateModalCalendarHTML(year, month, selectedDay) {
@@ -414,8 +480,8 @@ class CadenceApp {
         
         // Days of the month
         for (let d = 1; d <= daysInMonth; d++) {
-            const hours = this.getHoursForDay(year, month, d);
-            const hasHours = hours > 0;
+            const dayTotal = this.getDayTotal(year, month, d);
+            const hasHours = dayTotal > 0;
             const isToday = d === todayDate;
             const isSelected = d === selectedDay;
             
@@ -435,13 +501,9 @@ class CadenceApp {
     }
 
     handleAddHours() {
-        const hours = parseFloat(this.elements.hoursInput.value);
+        const hours = parseFloat(this.elements.hoursInput.value) || 0;
+        const credit = parseFloat(this.elements.creditInput.value) || 0;
         const day = parseInt(this.elements.selectedDay.value);
-        
-        if (isNaN(hours) || hours <= 0) {
-            this.elements.hoursInput.focus();
-            return;
-        }
         
         if (isNaN(day) || day <= 0) {
             return;
@@ -450,7 +512,8 @@ class CadenceApp {
         const year = this.currentDate.getFullYear();
         const month = this.currentDate.getMonth();
         
-        this.addHoursForDay(year, month, day, hours);
+        // Set (replace) the values for this day
+        this.setDayData(year, month, day, hours, credit);
         this.closeAddModal();
         this.render();
     }

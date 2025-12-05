@@ -281,6 +281,18 @@ body {
     box-shadow: 0 0 12px var(--accent-glow);
 }
 
+.calendar-day:not(.empty) {
+    cursor: pointer;
+}
+
+.calendar-day:not(.empty):hover {
+    background: var(--bg-elevated);
+}
+
+.calendar-day.has-hours:hover {
+    background: rgba(245, 158, 11, 0.15);
+}
+
 .day-number {
     font-weight: 500;
     line-height: 1;
@@ -293,23 +305,45 @@ body {
     font-weight: 500;
 }
 
-.month-total {
+.month-totals {
+    padding-top: 16px;
+    border-top: 1px solid var(--bg-tertiary);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.month-total-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: 16px;
-    border-top: 1px solid var(--bg-tertiary);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
-.month-total span:first-child {
+.month-total-row span:first-child {
+    color: var(--text-muted);
+}
+
+.month-total-row span:last-child {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
     color: var(--text-secondary);
 }
 
-.month-total span:last-child {
-    font-family: 'JetBrains Mono', monospace;
+.month-total-row.total {
+    padding-top: 8px;
+    border-top: 1px solid var(--bg-tertiary);
+    font-size: 0.95rem;
+}
+
+.month-total-row.total span:first-child {
+    color: var(--text-secondary);
     font-weight: 500;
+}
+
+.month-total-row.total span:last-child {
     color: var(--accent-primary);
+    font-weight: 600;
 }
 
 /* ===== Modal Calendar ===== */
@@ -475,6 +509,10 @@ body {
     margin-bottom: 0;
 }
 
+.month-item-calendar .month-totals {
+    margin-top: 16px;
+}
+
 /* ===== Settings Button ===== */
 .settings-btn {
     position: fixed;
@@ -582,6 +620,12 @@ body {
     display: flex;
     flex-direction: column;
     gap: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
 }
 
 .form-group {

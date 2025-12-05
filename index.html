@@ -53,9 +53,19 @@
                 </button>
             </div>
             <div class="calendar" id="currentCalendar"></div>
-            <div class="month-total">
-                <span>Month total:</span>
-                <span id="currentMonthTotal">0 hrs</span>
+            <div class="month-totals">
+                <div class="month-total-row">
+                    <span>Hours</span>
+                    <span id="currentMonthHours">0</span>
+                </div>
+                <div class="month-total-row">
+                    <span>Credit</span>
+                    <span id="currentMonthCredit">0</span>
+                </div>
+                <div class="month-total-row total">
+                    <span>Total</span>
+                    <span id="currentMonthTotal">0</span>
+                </div>
             </div>
         </section>
 
@@ -77,13 +87,19 @@
     <div class="modal-overlay" id="addTimeModal">
         <div class="modal">
             <div class="modal-header">
-                <h3>Add Hours</h3>
+                <h3 id="addModalTitle">Add Hours</h3>
                 <button class="modal-close" id="closeAddModal">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="hoursInput">Hours</label>
-                    <input type="number" id="hoursInput" min="0.5" max="24" step="0.5" placeholder="0">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="hoursInput">Hours</label>
+                        <input type="number" id="hoursInput" min="0" max="24" step="0.5" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="creditInput">Credit</label>
+                        <input type="number" id="creditInput" min="0" max="24" step="0.5" placeholder="0">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Select Day</label>
@@ -93,7 +109,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="cancelAdd">Cancel</button>
-                <button class="btn btn-primary" id="confirmAdd">Add Hours</button>
+                <button class="btn btn-primary" id="confirmAdd">Save</button>
             </div>
         </div>
     </div>
