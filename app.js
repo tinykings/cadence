@@ -90,6 +90,57 @@ class CadenceApp {
         return previous.reverse(); // Most recent first
     }
 
+    // Get all months for a specific academic year
+    getMonthsForAcademicYear(startYear) {
+        const months = [];
+        // September (8) to December (11) of start year
+        for (let m = 8; m <= 11; m++) {
+            months.push({ year: startYear, month: m });
+        }
+        // January (0) to August (7) of end year
+        for (let m = 0; m <= 7; m++) {
+            months.push({ year: startYear + 1, month: m });
+        }
+        return months;
+    }
+
+    // Get previous academic years (completed years)
+    getPreviousYears() {
+        const currentAcademicYear = this.getAcademicYear();
+        const previousYears = [];
+        
+        // Look for years with data going back
+        // Check up to 10 years back for any data
+        for (let startYear = currentAcademicYear.start - 1; startYear >= currentAcademicYear.start - 10; startYear--) {
+            const yearTotal = this.getYearTotalForAcademicYear(startYear);
+            if (yearTotal.total > 0) {
+                previousYears.push({
+                    startYear,
+                    endYear: startYear + 1,
+                    label: `${startYear}–${(startYear + 1).toString().slice(-2)}`,
+                    ...yearTotal
+                });
+            }
+        }
+        
+        return previousYears;
+    }
+
+    // Get total hours/credit for a specific academic year
+    getYearTotalForAcademicYear(startYear) {
+        const months = this.getMonthsForAcademicYear(startYear);
+        let hours = 0;
+        let credit = 0;
+        
+        for (const m of months) {
+            const monthTotals = this.getMonthTotals(m.year, m.month);
+            hours += monthTotals.hours;
+            credit += monthTotals.credit;
+        }
+        
+        return { hours, credit, total: hours + credit };
+    }
+
     // ===== Hours & Credit Calculation =====
     getDayData(year, month, day) {
         const key = this.formatDateKey(year, month, day);
@@ -200,6 +251,8 @@ class CadenceApp {
             currentMonthCredit: document.getElementById('currentMonthCredit'),
             currentMonthTotal: document.getElementById('currentMonthTotal'),
             previousMonths: document.getElementById('previousMonths'),
+            previousYearsSection: document.getElementById('previousYearsSection'),
+            previousYears: document.getElementById('previousYears'),
             addTimeBtn: document.getElementById('addTimeBtn'),
             addTimeModal: document.getElementById('addTimeModal'),
             addModalTitle: document.getElementById('addModalTitle'),
@@ -263,6 +316,7 @@ class CadenceApp {
         this.renderStats();
         this.renderCurrentMonth();
         this.renderPreviousMonths();
+        this.renderPreviousYears();
     }
 
     renderHeader() {
@@ -425,6 +479,113 @@ class CadenceApp {
                     e.stopPropagation(); // Prevent triggering header click
                     const day = parseInt(dayEl.querySelector('.day-number').textContent);
                     this.openAddModal(day, year, month);
+                });
+            });
+        });
+    }
+
+    renderPreviousYears() {
+        const previousYears = this.getPreviousYears();
+        
+        // Hide section if no previous years
+        if (previousYears.length === 0) {
+            this.elements.previousYearsSection.style.display = 'none';
+            return;
+        }
+        
+        this.elements.previousYearsSection.style.display = 'block';
+        
+        let html = '';
+        
+        for (const year of previousYears) {
+            const months = this.getMonthsForAcademicYear(year.startYear);
+            
+            let monthsHtml = '';
+            for (const m of months) {
+                const monthName = new Date(m.year, m.month).toLocaleDateString('en-US', { 
+                    month: 'long',
+                    year: 'numeric'
+                });
+                const totals = this.getMonthTotals(m.year, m.month);
+                const hasHours = totals.total > 0;
+                
+                monthsHtml += `
+                    <div class="year-month-item month-item" data-year="${m.year}" data-month="${m.month}">
+                        <div class="month-item-header">
+                            <span class="month-item-name">${monthName}</span>
+                            <span class="month-item-hours ${hasHours ? 'has-hours' : ''}">${this.formatNumber(totals.total)} hrs</span>
+                            <span class="month-item-expand">▼</span>
+                        </div>
+                        <div class="month-item-calendar">
+                            <div class="calendar">
+                                ${this.generateCalendarHTML(m.year, m.month)}
+                            </div>
+                            <div class="month-totals">
+                                <div class="month-total-row">
+                                    <span>Hours</span>
+                                    <span>${this.formatNumber(totals.hours)}</span>
+                                </div>
+                                <div class="month-total-row">
+                                    <span>Credit</span>
+                                    <span>${this.formatNumber(totals.credit)}</span>
+                                </div>
+                                <div class="month-total-row total">
+                                    <span>Total</span>
+                                    <span>${this.formatNumber(totals.total)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += `
+                <div class="year-item" data-start-year="${year.startYear}">
+                    <div class="year-item-header">
+                        <span class="year-item-name">${year.label}</span>
+                        <span class="year-item-hours ${year.total > 0 ? 'has-hours' : ''}">${this.formatNumber(year.total)} hrs</span>
+                        <span class="year-item-expand">▼</span>
+                    </div>
+                    <div class="year-item-content">
+                        <div class="year-months-list">
+                            ${monthsHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        this.elements.previousYears.innerHTML = html;
+        
+        // Add click handlers for year expansion
+        const yearItems = this.elements.previousYears.querySelectorAll('.year-item');
+        yearItems.forEach(yearItem => {
+            const yearHeader = yearItem.querySelector('.year-item-header');
+            
+            yearHeader.addEventListener('click', () => {
+                yearItem.classList.toggle('expanded');
+            });
+            
+            // Add click handlers for month expansion within years
+            const monthItems = yearItem.querySelectorAll('.year-month-item');
+            monthItems.forEach(monthItem => {
+                const monthHeader = monthItem.querySelector('.month-item-header');
+                const year = parseInt(monthItem.dataset.year);
+                const month = parseInt(monthItem.dataset.month);
+                
+                monthHeader.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    monthItem.classList.toggle('expanded');
+                });
+                
+                // Add click handlers to calendar days for editing
+                const dayElements = monthItem.querySelectorAll('.calendar-day:not(.empty)');
+                dayElements.forEach(dayEl => {
+                    dayEl.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const day = parseInt(dayEl.querySelector('.day-number').textContent);
+                        this.openAddModal(day, year, month);
+                    });
                 });
             });
         });

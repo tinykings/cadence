@@ -117,7 +117,6 @@ body {
     border-radius: var(--radius-lg);
     padding: 20px;
     position: relative;
-    overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.03);
     transition: transform var(--transition-normal), box-shadow var(--transition-normal);
 }
@@ -148,15 +147,17 @@ body {
 
 .progress-ring {
     position: absolute;
-    right: 12px;
+    right: 16px;
     top: 50%;
     transform: translateY(-50%);
     width: 48px;
     height: 48px;
+    overflow: visible;
 }
 
 .progress-ring svg {
     transform: rotate(-90deg);
+    overflow: visible;
 }
 
 .progress-bg {
@@ -458,11 +459,11 @@ body {
 
 .month-item-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     padding: 16px 20px;
     cursor: pointer;
     transition: background var(--transition-fast);
+    gap: 12px;
 }
 
 .month-item-header:hover {
@@ -472,12 +473,15 @@ body {
 .month-item-name {
     font-weight: 500;
     color: var(--text-primary);
+    flex: 1;
 }
 
 .month-item-hours {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.9rem;
     color: var(--text-secondary);
+    text-align: right;
+    min-width: 60px;
 }
 
 .month-item-hours.has-hours {
@@ -511,6 +515,109 @@ body {
 
 .month-item-calendar .month-totals {
     margin-top: 16px;
+}
+
+/* ===== Previous Years Section ===== */
+.previous-years-section {
+    margin-top: 28px;
+    animation: fadeInUp 0.5s ease 0.4s both;
+}
+
+.previous-years-section h3 {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.years-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.year-item {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    overflow: hidden;
+}
+
+.year-item-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    gap: 12px;
+}
+
+.year-item-header:hover {
+    background: var(--bg-tertiary);
+}
+
+.year-item-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.year-item-hours {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-align: right;
+    min-width: 70px;
+}
+
+.year-item-hours.has-hours {
+    color: var(--accent-primary);
+}
+
+.year-item-expand {
+    color: var(--text-muted);
+    transition: transform var(--transition-normal);
+}
+
+.year-item.expanded .year-item-expand {
+    transform: rotate(180deg);
+}
+
+.year-item-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height var(--transition-slow);
+}
+
+.year-item.expanded .year-item-content {
+    max-height: 5000px;
+}
+
+.year-months-list {
+    padding: 0 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.year-month-item {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.year-month-item .month-item-header {
+    padding: 12px 16px;
+}
+
+.year-month-item .month-item-calendar {
+    padding: 0 16px;
+}
+
+.year-month-item.expanded .month-item-calendar {
+    padding: 0 16px 16px;
 }
 
 /* ===== Settings Button ===== */
