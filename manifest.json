@@ -9,13 +9,13 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "./icon.png",
+      "src": "./icons/icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon.png",
+      "src": "./icons/icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -28,7 +28,7 @@
       "short_name": "Add",
       "description": "Quickly add hours for today",
       "url": "./?action=add",
-      "icons": [{ "src": "./icon.png", "sizes": "512x512" }]
+      "icons": [{ "src": "./icons/icon.png", "sizes": "512x512" }]
     }
   ]
 }

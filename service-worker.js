@@ -5,7 +5,7 @@ const ASSETS_TO_CACHE = [
   './styles.css',
   './app.js',
   './manifest.json',
-  './icon.png',
+  './icons/icon.png',
   'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap'
 ];
 
