@@ -2,11 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cadence - Time Tracker</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Track your hours and credit throughout the academic year">
+    <meta name="theme-color" content="#f59e0b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Cadence">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Cadence">
+    <meta name="msapplication-TileColor" content="#0f0f0f">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%230f0f0f' width='100' height='100' rx='20'/><text x='50' y='68' font-size='55' text-anchor='middle' fill='%23f59e0b'>◷</text></svg>">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -132,6 +154,35 @@
                     <input type="number" id="goalInput" min="1" step="1" placeholder="600">
                 </div>
                 <div class="form-group">
+                    <label>Theme</label>
+                    <div class="theme-picker" id="themePicker">
+                        <button class="theme-option" data-theme="amber" title="Amber">
+                            <span class="theme-color"></span>
+                        </button>
+                        <button class="theme-option" data-theme="blue" title="Blue">
+                            <span class="theme-color"></span>
+                        </button>
+                        <button class="theme-option" data-theme="emerald" title="Emerald">
+                            <span class="theme-color"></span>
+                        </button>
+                        <button class="theme-option" data-theme="violet" title="Violet">
+                            <span class="theme-color"></span>
+                        </button>
+                        <button class="theme-option" data-theme="rose" title="Rose">
+                            <span class="theme-color"></span>
+                        </button>
+                        <button class="theme-option" data-theme="cyan" title="Cyan">
+                            <span class="theme-color"></span>
+                        </button>
+                        <button class="theme-option" data-theme="orange" title="Orange">
+                            <span class="theme-color"></span>
+                        </button>
+                        <button class="theme-option" data-theme="lime" title="Lime">
+                            <span class="theme-color"></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label>Backup & Restore</label>
                     <div class="btn-group">
                         <button class="btn btn-secondary" id="exportDataBtn">
@@ -156,6 +207,31 @@
     </div>
 
     <script src="app.js"></script>
+    <script>
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then((registration) => {
+                        console.log('ServiceWorker registered:', registration.scope);
+                        
+                        // Check for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New version available
+                                    console.log('New version available');
+                                }
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.log('ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+    </script>
 </body>
 </html>
 

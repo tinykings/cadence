@@ -4,7 +4,41 @@ class CadenceApp {
     constructor() {
         this.data = this.loadData();
         this.currentDate = new Date();
+        this.loadTheme();
         this.init();
+    }
+
+    // ===== Theme Management =====
+    loadTheme() {
+        const savedTheme = localStorage.getItem('cadence-theme') || 'amber';
+        this.applyTheme(savedTheme);
+    }
+
+    applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        this.currentTheme = theme;
+        
+        // Update meta theme-color for mobile browsers
+        const themeColors = {
+            amber: '#f59e0b',
+            blue: '#3b82f6',
+            emerald: '#10b981',
+            violet: '#8b5cf6',
+            rose: '#f43f5e',
+            cyan: '#06b6d4',
+            orange: '#f97316',
+            lime: '#84cc16'
+        };
+        
+        const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+        if (metaThemeColor) {
+            metaThemeColor.setAttribute('content', themeColors[theme] || themeColors.amber);
+        }
+    }
+
+    saveTheme(theme) {
+        localStorage.setItem('cadence-theme', theme);
+        this.applyTheme(theme);
     }
 
     // ===== Data Management =====
@@ -272,7 +306,8 @@ class CadenceApp {
             clearDataBtn: document.getElementById('clearDataBtn'),
             exportDataBtn: document.getElementById('exportDataBtn'),
             importDataBtn: document.getElementById('importDataBtn'),
-            importFileInput: document.getElementById('importFileInput')
+            importFileInput: document.getElementById('importFileInput'),
+            themePicker: document.getElementById('themePicker')
         };
     }
 
@@ -292,6 +327,16 @@ class CadenceApp {
         this.elements.exportDataBtn.addEventListener('click', () => this.handleExportData());
         this.elements.importDataBtn.addEventListener('click', () => this.elements.importFileInput.click());
         this.elements.importFileInput.addEventListener('change', (e) => this.handleImportData(e));
+        
+        // Theme picker
+        this.elements.themePicker.addEventListener('click', (e) => {
+            const themeOption = e.target.closest('.theme-option');
+            if (themeOption) {
+                const theme = themeOption.dataset.theme;
+                this.saveTheme(theme);
+                this.updateThemePickerUI();
+            }
+        });
         
         // Close modals on overlay click
         this.elements.addTimeModal.addEventListener('click', (e) => {
@@ -710,8 +755,16 @@ class CadenceApp {
 
     openSettingsModal() {
         this.elements.goalInput.value = this.data.goal;
+        this.updateThemePickerUI();
         this.elements.settingsModal.classList.add('active');
         this.elements.goalInput.focus();
+    }
+
+    updateThemePickerUI() {
+        const options = this.elements.themePicker.querySelectorAll('.theme-option');
+        options.forEach(option => {
+            option.classList.toggle('active', option.dataset.theme === this.currentTheme);
+        });
     }
 
     closeSettingsModal() {
