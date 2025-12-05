@@ -9,10 +9,16 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "./icon.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "./icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "categories": ["productivity", "utilities"],
@@ -22,7 +28,7 @@
       "short_name": "Add",
       "description": "Quickly add hours for today",
       "url": "./?action=add",
-      "icons": [{ "src": "icon.png", "sizes": "512x512" }]
+      "icons": [{ "src": "./icon.png", "sizes": "512x512" }]
     }
   ]
 }
