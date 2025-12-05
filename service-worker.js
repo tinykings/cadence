@@ -1,11 +1,11 @@
-const CACHE_NAME = 'cadence-v3';
+const CACHE_NAME = 'cadence-v4';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/app.js',
-  '/manifest.json',
-  '/icon.png',
+  './',
+  './index.html',
+  './styles.css',
+  './app.js',
+  './manifest.json',
+  './icon.png',
   'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap'
 ];
 
@@ -85,7 +85,7 @@ self.addEventListener('fetch', (event) => {
           .catch(() => {
             // Network failed, return offline page if available
             if (event.request.mode === 'navigate') {
-              return caches.match('/index.html');
+              return caches.match('./index.html');
             }
           });
       })
