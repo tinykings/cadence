@@ -12,6 +12,8 @@
     --accent-primary: #f59e0b;
     --accent-secondary: #d97706;
     --accent-glow: rgba(245, 158, 11, 0.15);
+    --accent-glow-strong: rgba(245, 158, 11, 0.3);
+    --accent-glow-intense: rgba(245, 158, 11, 0.4);
     --accent-subtle: rgba(245, 158, 11, 0.08);
     
     --success: #22c55e;
@@ -36,6 +38,8 @@
     --accent-primary: #f59e0b;
     --accent-secondary: #d97706;
     --accent-glow: rgba(245, 158, 11, 0.15);
+    --accent-glow-strong: rgba(245, 158, 11, 0.3);
+    --accent-glow-intense: rgba(245, 158, 11, 0.4);
     --accent-subtle: rgba(245, 158, 11, 0.08);
 }
 
@@ -43,6 +47,8 @@
     --accent-primary: #3b82f6;
     --accent-secondary: #2563eb;
     --accent-glow: rgba(59, 130, 246, 0.15);
+    --accent-glow-strong: rgba(59, 130, 246, 0.3);
+    --accent-glow-intense: rgba(59, 130, 246, 0.4);
     --accent-subtle: rgba(59, 130, 246, 0.08);
 }
 
@@ -50,6 +56,8 @@
     --accent-primary: #10b981;
     --accent-secondary: #059669;
     --accent-glow: rgba(16, 185, 129, 0.15);
+    --accent-glow-strong: rgba(16, 185, 129, 0.3);
+    --accent-glow-intense: rgba(16, 185, 129, 0.4);
     --accent-subtle: rgba(16, 185, 129, 0.08);
 }
 
@@ -57,6 +65,8 @@
     --accent-primary: #8b5cf6;
     --accent-secondary: #7c3aed;
     --accent-glow: rgba(139, 92, 246, 0.15);
+    --accent-glow-strong: rgba(139, 92, 246, 0.3);
+    --accent-glow-intense: rgba(139, 92, 246, 0.4);
     --accent-subtle: rgba(139, 92, 246, 0.08);
 }
 
@@ -64,6 +74,8 @@
     --accent-primary: #f43f5e;
     --accent-secondary: #e11d48;
     --accent-glow: rgba(244, 63, 94, 0.15);
+    --accent-glow-strong: rgba(244, 63, 94, 0.3);
+    --accent-glow-intense: rgba(244, 63, 94, 0.4);
     --accent-subtle: rgba(244, 63, 94, 0.08);
 }
 
@@ -71,6 +83,8 @@
     --accent-primary: #06b6d4;
     --accent-secondary: #0891b2;
     --accent-glow: rgba(6, 182, 212, 0.15);
+    --accent-glow-strong: rgba(6, 182, 212, 0.3);
+    --accent-glow-intense: rgba(6, 182, 212, 0.4);
     --accent-subtle: rgba(6, 182, 212, 0.08);
 }
 
@@ -78,6 +92,8 @@
     --accent-primary: #f97316;
     --accent-secondary: #ea580c;
     --accent-glow: rgba(249, 115, 22, 0.15);
+    --accent-glow-strong: rgba(249, 115, 22, 0.3);
+    --accent-glow-intense: rgba(249, 115, 22, 0.4);
     --accent-subtle: rgba(249, 115, 22, 0.08);
 }
 
@@ -85,6 +101,8 @@
     --accent-primary: #84cc16;
     --accent-secondary: #65a30d;
     --accent-glow: rgba(132, 204, 22, 0.15);
+    --accent-glow-strong: rgba(132, 204, 22, 0.3);
+    --accent-glow-intense: rgba(132, 204, 22, 0.4);
     --accent-subtle: rgba(132, 204, 22, 0.08);
 }
 
@@ -288,13 +306,13 @@ body {
     align-items: center;
     justify-content: center;
     transition: all var(--transition-fast);
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    box-shadow: 0 4px 12px var(--accent-glow-strong);
 }
 
 .add-btn:hover {
     background: var(--accent-secondary);
     transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    box-shadow: 0 6px 20px var(--accent-glow-intense);
 }
 
 .add-btn:active {
