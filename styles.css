@@ -711,6 +711,24 @@ body {
     background: rgba(239, 68, 68, 0.25);
 }
 
+.btn-group {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-group .btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
 /* ===== Animations ===== */
 @keyframes fadeInDown {
     from {

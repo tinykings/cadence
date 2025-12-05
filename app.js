@@ -216,7 +216,10 @@ class CadenceApp {
             saveSettings: document.getElementById('saveSettings'),
             cancelSettings: document.getElementById('cancelSettings'),
             closeSettingsModal: document.getElementById('closeSettingsModal'),
-            clearDataBtn: document.getElementById('clearDataBtn')
+            clearDataBtn: document.getElementById('clearDataBtn'),
+            exportDataBtn: document.getElementById('exportDataBtn'),
+            importDataBtn: document.getElementById('importDataBtn'),
+            importFileInput: document.getElementById('importFileInput')
         };
     }
 
@@ -233,6 +236,9 @@ class CadenceApp {
         this.elements.cancelSettings.addEventListener('click', () => this.closeSettingsModal());
         this.elements.saveSettings.addEventListener('click', () => this.handleSaveSettings());
         this.elements.clearDataBtn.addEventListener('click', () => this.handleClearData());
+        this.elements.exportDataBtn.addEventListener('click', () => this.handleExportData());
+        this.elements.importDataBtn.addEventListener('click', () => this.elements.importFileInput.click());
+        this.elements.importFileInput.addEventListener('change', (e) => this.handleImportData(e));
         
         // Close modals on overlay click
         this.elements.addTimeModal.addEventListener('click', (e) => {
@@ -400,22 +406,44 @@ class CadenceApp {
         
         this.elements.previousMonths.innerHTML = html;
         
-        // Add click handlers for expanding
-        const monthItems = this.elements.previousMonths.querySelectorAll('.month-item-header');
-        monthItems.forEach(header => {
+        // Add click handlers for expanding and day editing
+        const monthItems = this.elements.previousMonths.querySelectorAll('.month-item');
+        monthItems.forEach(item => {
+            const header = item.querySelector('.month-item-header');
+            const year = parseInt(item.dataset.year);
+            const month = parseInt(item.dataset.month);
+            
+            // Toggle expand on header click
             header.addEventListener('click', () => {
-                const item = header.closest('.month-item');
                 item.classList.toggle('expanded');
+            });
+            
+            // Add click handlers to calendar days for editing
+            const dayElements = item.querySelectorAll('.calendar-day:not(.empty)');
+            dayElements.forEach(dayEl => {
+                dayEl.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent triggering header click
+                    const day = parseInt(dayEl.querySelector('.day-number').textContent);
+                    this.openAddModal(day, year, month);
+                });
             });
         });
     }
 
     // ===== Modal Handlers =====
-    openAddModal(selectedDay = null) {
-        const year = this.currentDate.getFullYear();
-        const month = this.currentDate.getMonth();
+    openAddModal(selectedDay = null, targetYear = null, targetMonth = null) {
+        // Use provided year/month or default to current
+        const year = targetYear !== null ? targetYear : this.currentDate.getFullYear();
+        const month = targetMonth !== null ? targetMonth : this.currentDate.getMonth();
+        
+        // Store the target year/month for saving
+        this.modalTargetYear = year;
+        this.modalTargetMonth = month;
+        
+        // Determine which day to select
         const today = this.currentDate.getDate();
-        const dayToSelect = selectedDay || today;
+        const isCurrentMonth = year === this.currentDate.getFullYear() && month === this.currentDate.getMonth();
+        const dayToSelect = selectedDay || (isCurrentMonth ? today : 1);
         
         // Render modal calendar
         this.elements.modalCalendar.innerHTML = this.generateModalCalendarHTML(year, month, dayToSelect);
@@ -509,8 +537,9 @@ class CadenceApp {
             return;
         }
         
-        const year = this.currentDate.getFullYear();
-        const month = this.currentDate.getMonth();
+        // Use the stored target year/month from when modal was opened
+        const year = this.modalTargetYear;
+        const month = this.modalTargetMonth;
         
         // Set (replace) the values for this day
         this.setDayData(year, month, day, hours, credit);
@@ -549,6 +578,68 @@ class CadenceApp {
             this.closeSettingsModal();
             this.render();
         }
+    }
+
+    handleExportData() {
+        const exportData = {
+            version: 1,
+            exportDate: new Date().toISOString(),
+            data: this.data
+        };
+        
+        const jsonString = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cadence-backup-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    handleImportData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                
+                // Validate the imported data structure
+                if (!importedData.data || typeof importedData.data.goal !== 'number') {
+                    throw new Error('Invalid backup file format');
+                }
+                
+                if (confirm('This will replace all current data with the imported backup. Continue?')) {
+                    this.data = importedData.data;
+                    
+                    // Ensure data structure is correct (migrate if needed)
+                    if (this.data.hours) {
+                        for (const key in this.data.hours) {
+                            if (typeof this.data.hours[key] === 'number') {
+                                this.data.hours[key] = { hours: this.data.hours[key], credit: 0 };
+                            }
+                        }
+                    }
+                    
+                    this.saveData();
+                    this.closeSettingsModal();
+                    this.render();
+                    alert('Data imported successfully!');
+                }
+            } catch (error) {
+                alert('Error importing data: ' + error.message);
+            }
+        };
+        
+        reader.readAsText(file);
+        
+        // Reset the file input so the same file can be selected again
+        event.target.value = '';
     }
 }
 
