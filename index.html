@@ -205,6 +205,17 @@
         </div>
     </div>
 
+    <!-- Install PWA Banner -->
+    <div class="install-banner" id="installBanner">
+        <div class="install-banner-content">
+            <span class="install-banner-text">Install Cadence for a better experience</span>
+            <div class="install-banner-actions">
+                <button class="install-btn" id="installBtn">Add to Home Screen</button>
+                <button class="install-dismiss" id="dismissInstall">✕</button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
     <script>
         // Register Service Worker for PWA
@@ -230,6 +241,82 @@
                     });
             });
         }
+
+        // PWA Install Banner Logic
+        (function() {
+            const installBanner = document.getElementById('installBanner');
+            const installBtn = document.getElementById('installBtn');
+            const dismissBtn = document.getElementById('dismissInstall');
+            
+            // Check if already in standalone mode (PWA)
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
+                || window.navigator.standalone === true;
+            
+            // Check if user dismissed the banner before
+            const isDismissed = localStorage.getItem('cadence-install-dismissed');
+            
+            // Store the install prompt event
+            let deferredPrompt = null;
+            
+            // Listen for the beforeinstallprompt event (Chrome/Edge)
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                
+                // Show banner if not standalone and not dismissed
+                if (!isStandalone && !isDismissed) {
+                    setTimeout(() => {
+                        installBanner.classList.add('visible');
+                    }, 2000); // Show after 2 seconds
+                }
+            });
+            
+            // For browsers that don't support beforeinstallprompt (Safari)
+            // Show banner with instructions instead
+            if (!isStandalone && !isDismissed) {
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+                
+                if (isIOS || isSafari) {
+                    setTimeout(() => {
+                        installBanner.classList.add('visible');
+                    }, 2000);
+                }
+            }
+            
+            // Handle install button click
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    // Chrome/Edge - use the native prompt
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        installBanner.classList.remove('visible');
+                    }
+                    deferredPrompt = null;
+                } else {
+                    // Safari/iOS - show instructions
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                    if (isIOS) {
+                        alert('To install: tap the Share button below, then "Add to Home Screen"');
+                    } else {
+                        alert('To install: open browser menu and look for "Add to Home Screen" or "Install App"');
+                    }
+                }
+            });
+            
+            // Handle dismiss button
+            dismissBtn.addEventListener('click', () => {
+                installBanner.classList.remove('visible');
+                localStorage.setItem('cadence-install-dismissed', 'true');
+            });
+            
+            // Hide banner if app gets installed
+            window.addEventListener('appinstalled', () => {
+                installBanner.classList.remove('visible');
+                deferredPrompt = null;
+            });
+        })();
     </script>
 </body>
 </html>

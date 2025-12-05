@@ -1058,3 +1058,83 @@ body {
     background: var(--bg-elevated);
 }
 
+/* ===== Install PWA Banner ===== */
+.install-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-secondary);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 16px 20px calc(16px + env(safe-area-inset-bottom));
+    transform: translateY(100%);
+    transition: transform var(--transition-normal);
+    z-index: 200;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.install-banner.visible {
+    transform: translateY(0);
+}
+
+.install-banner-content {
+    max-width: 480px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.install-banner-text {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.install-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.install-btn {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    border: none;
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all var(--transition-fast);
+}
+
+.install-btn:hover {
+    background: var(--accent-secondary);
+}
+
+.install-dismiss {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 8px;
+    line-height: 1;
+    transition: color var(--transition-fast);
+}
+
+.install-dismiss:hover {
+    color: var(--text-primary);
+}
+
+/* Hide banner when in standalone mode (PWA) */
+@media (display-mode: standalone) {
+    .install-banner {
+        display: none;
+    }
+}
+
