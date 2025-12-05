@@ -2,7 +2,7 @@
   "name": "Cadence",
   "short_name": "Cadence",
   "description": "Time track",
-  "start_url": "./",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f0f0f",
   "theme_color": "#f59e0b",
@@ -21,7 +21,7 @@
       "name": "Add Hours",
       "short_name": "Add",
       "description": "Quickly add hours for today",
-      "url": "./?action=add",
+      "url": "./index.html?action=add",
       "icons": [{ "src": "icon.png", "sizes": "512x512" }]
     }
   ]
