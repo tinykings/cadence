@@ -1063,21 +1063,14 @@ body {
 }
 
 /* ===== Scrollbar ===== */
-::-webkit-scrollbar {
-    width: 8px;
+/* Hide scrollbar but keep scrolling */
+body {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
 }
 
-::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--bg-tertiary);
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--bg-elevated);
+body::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/Opera */
 }
 
 /* ===== Install PWA Banner ===== */
@@ -1157,16 +1150,6 @@ body {
 @media (display-mode: standalone) {
     .install-banner {
         display: none;
-    }
-    
-    /* Hide scrollbar in PWA mode */
-    body {
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE/Edge */
-    }
-    
-    body::-webkit-scrollbar {
-        display: none; /* Chrome/Safari/Opera */
     }
 }
 
