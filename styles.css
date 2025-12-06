@@ -344,7 +344,7 @@ body {
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-sm);
-    font-size: 1rem;
+    font-size: 1.15rem;
     color: var(--text-secondary);
     background: var(--bg-tertiary);
     transition: all var(--transition-fast);
@@ -391,7 +391,7 @@ body {
 
 .day-hours {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
+    font-size: 0.85rem;
     color: var(--accent-primary);
     font-weight: 500;
 }
@@ -1054,11 +1054,11 @@ body {
     }
     
     .calendar-day {
-        font-size: 0.9rem;
+        font-size: 1rem;
     }
     
     .day-hours {
-        font-size: 0.65rem;
+        font-size: 0.75rem;
     }
 }
 
