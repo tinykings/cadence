@@ -267,34 +267,30 @@ class CadenceApp {
 
     getWeeklyHoursNeeded() {
         const monthlyNeeded = this.getMonthlyAverageNeeded();
-        const currentMonthTotals = this.getMonthTotals(
-            this.currentDate.getFullYear(),
-            this.currentDate.getMonth()
-        );
+        if (monthlyNeeded <= 0) return 0;
         
-        const remainingForMonth = monthlyNeeded - currentMonthTotals.total;
+        // Weekly target = monthly target / ~4.33 weeks per month
+        const weeklyTarget = monthlyNeeded / 4.33;
         
-        if (remainingForMonth <= 0) return 0;
+        // Get hours logged this week (Sunday to today)
+        const today = this.currentDate;
+        const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
         
-        // Calculate days remaining in month (including today)
-        const today = this.currentDate.getDate();
-        const daysInMonth = new Date(
-            this.currentDate.getFullYear(),
-            this.currentDate.getMonth() + 1,
-            0
-        ).getDate();
-        const daysRemainingInMonth = daysInMonth - today + 1;
+        let weeklyTotal = 0;
+        for (let i = 0; i <= dayOfWeek; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - (dayOfWeek - i));
+            // Only count days within current month
+            if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
+                const dayData = this.getDayData(date.getFullYear(), date.getMonth(), date.getDate());
+                weeklyTotal += dayData.hours + dayData.credit;
+            }
+        }
         
-        // Calculate days remaining in current week (including today, up to Sunday)
-        const dayOfWeek = this.currentDate.getDay(); // 0 = Sunday, 6 = Saturday
-        const daysUntilSunday = dayOfWeek === 0 ? 1 : (7 - dayOfWeek + 1);
-        const daysRemainingInWeek = Math.min(daysUntilSunday, daysRemainingInMonth);
-        
-        // Pro-rate: (remaining / days left in month) * days left in week
-        const hoursPerDay = remainingForMonth / daysRemainingInMonth;
-        const weeklyNeeded = hoursPerDay * daysRemainingInWeek;
-        
-        return Math.ceil(weeklyNeeded);
+        const remaining = weeklyTarget - weeklyTotal;
+        return remaining > 0 ? Math.ceil(remaining) : 0;
     }
 
     // ===== UI Initialization =====
