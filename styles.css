@@ -1064,13 +1064,18 @@ body {
 
 /* ===== Scrollbar ===== */
 /* Hide scrollbar but keep scrolling */
-body {
+html,
+body,
+* {
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE/Edge */
 }
 
-body::-webkit-scrollbar {
+::-webkit-scrollbar {
     display: none; /* Chrome/Safari/Opera */
+    width: 0;
+    height: 0;
+    background: transparent;
 }
 
 /* ===== Install PWA Banner ===== */
