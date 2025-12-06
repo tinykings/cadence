@@ -307,7 +307,8 @@ class CadenceApp {
             exportDataBtn: document.getElementById('exportDataBtn'),
             importDataBtn: document.getElementById('importDataBtn'),
             importFileInput: document.getElementById('importFileInput'),
-            themePicker: document.getElementById('themePicker')
+            themePicker: document.getElementById('themePicker'),
+            checkUpdatesBtn: document.getElementById('checkUpdatesBtn')
         };
     }
 
@@ -327,6 +328,7 @@ class CadenceApp {
         this.elements.exportDataBtn.addEventListener('click', () => this.handleExportData());
         this.elements.importDataBtn.addEventListener('click', () => this.elements.importFileInput.click());
         this.elements.importFileInput.addEventListener('change', (e) => this.handleImportData(e));
+        this.elements.checkUpdatesBtn.addEventListener('click', () => this.handleCheckUpdates());
         
         // Theme picker
         this.elements.themePicker.addEventListener('click', (e) => {
@@ -791,6 +793,37 @@ class CadenceApp {
             this.saveData();
             this.closeSettingsModal();
             this.render();
+        }
+    }
+
+    async handleCheckUpdates() {
+        const btn = this.elements.checkUpdatesBtn;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="btn-icon">↻</span> Checking...';
+        btn.disabled = true;
+        
+        try {
+            // Unregister service worker
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (const registration of registrations) {
+                    await registration.unregister();
+                }
+            }
+            
+            // Clear all caches
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+            }
+            
+            // Reload the page
+            window.location.reload(true);
+        } catch (error) {
+            console.error('Error checking for updates:', error);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            alert('Error checking for updates. Please try again.');
         }
     }
 
