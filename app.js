@@ -265,6 +265,38 @@ class CadenceApp {
         return Math.ceil(hoursNeeded / remaining);
     }
 
+    getWeeklyHoursNeeded() {
+        const monthlyNeeded = this.getMonthlyAverageNeeded();
+        const currentMonthTotals = this.getMonthTotals(
+            this.currentDate.getFullYear(),
+            this.currentDate.getMonth()
+        );
+        
+        const remainingForMonth = monthlyNeeded - currentMonthTotals.total;
+        
+        if (remainingForMonth <= 0) return 0;
+        
+        // Calculate days remaining in month (including today)
+        const today = this.currentDate.getDate();
+        const daysInMonth = new Date(
+            this.currentDate.getFullYear(),
+            this.currentDate.getMonth() + 1,
+            0
+        ).getDate();
+        const daysRemainingInMonth = daysInMonth - today + 1;
+        
+        // Calculate days remaining in current week (including today, up to Sunday)
+        const dayOfWeek = this.currentDate.getDay(); // 0 = Sunday, 6 = Saturday
+        const daysUntilSunday = dayOfWeek === 0 ? 1 : (7 - dayOfWeek + 1);
+        const daysRemainingInWeek = Math.min(daysUntilSunday, daysRemainingInMonth);
+        
+        // Pro-rate: (remaining / days left in month) * days left in week
+        const hoursPerDay = remainingForMonth / daysRemainingInMonth;
+        const weeklyNeeded = hoursPerDay * daysRemainingInWeek;
+        
+        return Math.ceil(weeklyNeeded);
+    }
+
     // ===== UI Initialization =====
     init() {
         this.cacheElements();
@@ -279,6 +311,7 @@ class CadenceApp {
             goalHours: document.getElementById('goalHours'),
             progressRing: document.getElementById('progressRing'),
             monthlyAvg: document.getElementById('monthlyAvg'),
+            weeklyNeeded: document.getElementById('weeklyNeeded'),
             currentMonthName: document.getElementById('currentMonthName'),
             currentCalendar: document.getElementById('currentCalendar'),
             currentMonthHours: document.getElementById('currentMonthHours'),
@@ -375,10 +408,12 @@ class CadenceApp {
         const goal = this.data.goal;
         const percentage = Math.min((total / goal) * 100, 100);
         const avgNeeded = this.getMonthlyAverageNeeded();
+        const weeklyNeeded = this.getWeeklyHoursNeeded();
         
         this.elements.totalHours.textContent = total.toFixed(1).replace(/\.0$/, '');
         this.elements.goalHours.textContent = goal;
         this.elements.monthlyAvg.textContent = avgNeeded;
+        this.elements.weeklyNeeded.textContent = weeklyNeeded;
         
         // Update progress ring
         this.elements.progressRing.setAttribute('stroke-dasharray', `${percentage}, 100`);

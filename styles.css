@@ -266,7 +266,14 @@ body {
 }
 
 .monthly-avg .stat-value {
-    color: var(--text-primary);
+    color: var(--accent-primary);
+}
+
+.stat-sublabel {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--accent-primary);
+    margin-top: 6px;
 }
 
 /* ===== Current Month Section ===== */
