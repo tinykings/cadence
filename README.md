@@ -1,5 +1,3 @@
-## What is Cadence?
-
 Cadence is a lightweight, offline-capable Progressive Web App (PWA) designed to help you track your time throughout the year. It provides a clean, calendar-based interface for logging hours and credit hours on a daily basis, with visual progress tracking toward your annual goal.
 
 
