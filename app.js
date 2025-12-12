@@ -4,8 +4,41 @@ class CadenceApp {
     constructor() {
         this.data = this.loadData();
         this.currentDate = new Date();
+        this._currentDateKey = this.getDateKey(this.currentDate);
         this.loadTheme();
         this.init();
+    }
+
+    // ===== Date helpers (for PWA resume) =====
+    getDateKey(date) {
+        // Local day key: YYYY-MM-DD (using local time)
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    isAnyModalOpen() {
+        return Boolean(
+            this.elements?.addTimeModal?.classList.contains('active') ||
+            this.elements?.settingsModal?.classList.contains('active')
+        );
+    }
+
+    refreshIfDayChanged() {
+        const now = new Date();
+        const nowKey = this.getDateKey(now);
+
+        if (nowKey === this._currentDateKey) return;
+
+        // Update the app's "current" date and rerender so "today" highlighting updates.
+        this.currentDate = now;
+        this._currentDateKey = nowKey;
+
+        // Avoid re-rendering while a modal is open to prevent disrupting edits.
+        if (!this.isAnyModalOpen()) {
+            this.render();
+        }
     }
 
     // ===== Theme Management =====
@@ -298,6 +331,7 @@ class CadenceApp {
         this.cacheElements();
         this.bindEvents();
         this.render();
+        this.bindResumeRefresh();
     }
 
     cacheElements() {
@@ -384,6 +418,21 @@ class CadenceApp {
                 this.closeSettingsModal();
             }
         });
+    }
+
+    bindResumeRefresh() {
+        // When a PWA is reopened, the page can be restored from memory without a full reload.
+        // Re-render when the day changes so the current date stays highlighted.
+        const onResume = () => this.refreshIfDayChanged();
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) onResume();
+        });
+
+        window.addEventListener('focus', onResume);
+
+        // Handles bfcache restores on some browsers.
+        window.addEventListener('pageshow', onResume);
     }
 
     // ===== Rendering =====
