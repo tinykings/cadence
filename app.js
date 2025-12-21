@@ -302,28 +302,25 @@ class CadenceApp {
         const monthlyNeeded = this.getMonthlyAverageNeeded();
         if (monthlyNeeded <= 0) return 0;
         
-        // Weekly target = monthly target / ~4.33 weeks per month
-        const weeklyTarget = monthlyNeeded / 4.33;
+        // Get total hours logged this month
+        const year = this.currentDate.getFullYear();
+        const month = this.currentDate.getMonth();
+        const monthTotals = this.getMonthTotals(year, month);
         
-        // Get hours logged this week (Sunday to today)
-        const today = this.currentDate;
-        const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
-        const currentMonth = today.getMonth();
-        const currentYear = today.getFullYear();
+        // Calculate hours remaining to hit monthly target
+        const hoursRemainingForMonth = monthlyNeeded - monthTotals.total;
         
-        let weeklyTotal = 0;
-        for (let i = 0; i <= dayOfWeek; i++) {
-            const date = new Date(today);
-            date.setDate(today.getDate() - (dayOfWeek - i));
-            // Only count days within current month
-            if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
-                const dayData = this.getDayData(date.getFullYear(), date.getMonth(), date.getDate());
-                weeklyTotal += dayData.hours + dayData.credit;
-            }
-        }
+        // If already at or above monthly target, no hours needed
+        if (hoursRemainingForMonth <= 0) return 0;
         
-        const remaining = weeklyTarget - weeklyTotal;
-        return remaining > 0 ? Math.ceil(remaining) : 0;
+        // Calculate weeks remaining in the month (including rest of current week)
+        const today = this.currentDate.getDate();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const daysRemaining = daysInMonth - today + 1; // +1 to include today
+        const weeksRemaining = Math.max(1, daysRemaining / 7);
+        
+        // Spread remaining hours across remaining weeks
+        return Math.ceil(hoursRemainingForMonth / weeksRemaining);
     }
 
     // ===== UI Initialization =====
