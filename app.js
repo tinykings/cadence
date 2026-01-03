@@ -18,6 +18,14 @@ class CadenceApp {
         return `${y}-${m}-${d}`;
     }
 
+    // Get start of week (Sunday)
+    getStartOfWeek(date) {
+        const d = new Date(date);
+        const day = d.getDay(); // 0 (Sun) - 6 (Sat)
+        d.setDate(d.getDate() - day);
+        return d;
+    }
+
     isAnyModalOpen() {
         return Boolean(
             this.elements?.addTimeModal?.classList.contains('active') ||
@@ -299,28 +307,57 @@ class CadenceApp {
     }
 
     getWeeklyHoursNeeded() {
-        const monthlyNeeded = this.getMonthlyAverageNeeded();
-        if (monthlyNeeded <= 0) return 0;
+        const remainingMonths = this.getRemainingMonths();
+        if (remainingMonths === 0) return 0;
         
-        // Get total hours logged this month
         const year = this.currentDate.getFullYear();
         const month = this.currentDate.getMonth();
-        const monthTotals = this.getMonthTotals(year, month);
         
-        // Calculate hours remaining to hit monthly target
-        const hoursRemainingForMonth = monthlyNeeded - monthTotals.total;
+        // 1. Calculate work done in the "Current Week Bucket"
+        // The bucket spans from the start of the week (or month) to the end of the week (or month).
+        // We must include ALL work in this bucket (even if it's "tomorrow") so that the 
+        // subtraction at the end (Goal - Work) reduces the needed amount 1-to-1.
         
-        // If already at or above monthly target, no hours needed
-        if (hoursRemainingForMonth <= 0) return 0;
+        const weekStart = this.getStartOfWeek(this.currentDate);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
         
-        // Calculate weeks remaining in the month (including rest of current week)
-        const today = this.currentDate.getDate();
+        const effectiveStartDay = (weekStart.getMonth() === month && weekStart.getFullYear() === year) 
+            ? weekStart.getDate() 
+            : 1;
+            
+        const effectiveEndDay = (weekEnd.getMonth() === month && weekEnd.getFullYear() === year)
+            ? weekEnd.getDate()
+            : new Date(year, month + 1, 0).getDate();
+            
+        let workDoneInWeekBucket = 0;
+        for (let d = effectiveStartDay; d <= effectiveEndDay; d++) {
+            workDoneInWeekBucket += this.getDayTotal(year, month, d);
+        }
+        
+        // 2. Calculate what the year total was BEFORE any work in this week bucket
+        const currentYearTotal = this.getYearTotal();
+        const yearTotalAtStartOfWeek = currentYearTotal - workDoneInWeekBucket;
+        
+        // 3. Calculate Monthly Average Needed based on that "Start of Week" total
+        const totalGoal = this.data.goal;
+        const hoursNeededAtStart = totalGoal - yearTotalAtStartOfWeek;
+        
+        if (hoursNeededAtStart <= 0) return 0;
+        
+        const monthlyNeededAtStart = Math.ceil(hoursNeededAtStart / remainingMonths);
+        
+        // 4. Calculate Weekly Goal based on that Monthly target
         const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const daysRemaining = daysInMonth - today + 1; // +1 to include today
-        const weeksRemaining = Math.max(1, daysRemaining / 7);
+        const daysRemainingAtStart = daysInMonth - effectiveStartDay + 1;
+        const weeksRemainingAtStart = Math.max(1, daysRemainingAtStart / 7);
         
-        // Spread remaining hours across remaining weeks
-        return Math.ceil(hoursRemainingForMonth / weeksRemaining);
+        const weeklyGoal = Math.ceil(monthlyNeededAtStart / weeksRemainingAtStart);
+        
+        // 5. Subtract work done in the bucket to see what's left
+        const needed = weeklyGoal - workDoneInWeekBucket;
+        
+        return Math.max(0, needed);
     }
 
     // ===== UI Initialization =====
