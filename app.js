@@ -530,7 +530,7 @@ class CadenceApp {
         return num.toFixed(1).replace(/\.0$/, '');
     }
 
-    generateCalendarHTML(year, month, highlightDay = null) {
+    generateCalendarHTML(year, month) {
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const today = new Date();
@@ -574,6 +574,12 @@ class CadenceApp {
     renderPreviousMonths() {
         const previousMonths = this.getPreviousMonths();
         
+        // Capture currently expanded items to restore state
+        const expandedKeys = new Set();
+        this.elements.previousMonths.querySelectorAll('.month-item.expanded').forEach(item => {
+            expandedKeys.add(`${item.dataset.year}-${item.dataset.month}`);
+        });
+
         if (previousMonths.length === 0) {
             this.elements.previousMonths.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">No previous months in this academic year yet.</p>';
             return;
@@ -588,9 +594,10 @@ class CadenceApp {
             });
             const totals = this.getMonthTotals(m.year, m.month);
             const hasHours = totals.total > 0;
+            const isExpanded = expandedKeys.has(`${m.year}-${m.month}`);
             
             html += `
-                <div class="month-item" data-year="${m.year}" data-month="${m.month}">
+                <div class="month-item ${isExpanded ? 'expanded' : ''}" data-year="${m.year}" data-month="${m.month}">
                     <div class="month-item-header">
                         <span class="month-item-name">${monthName}</span>
                         <span class="month-item-hours ${hasHours ? 'has-hours' : ''}">${this.formatNumber(totals.total)} hrs</span>
@@ -648,6 +655,17 @@ class CadenceApp {
     renderPreviousYears() {
         const previousYears = this.getPreviousYears();
         
+        // Capture expanded states
+        const expandedYears = new Set();
+        this.elements.previousYears.querySelectorAll('.year-item.expanded').forEach(item => {
+            expandedYears.add(item.dataset.startYear);
+        });
+
+        const expandedMonths = new Set();
+        this.elements.previousYears.querySelectorAll('.year-month-item.expanded').forEach(item => {
+            expandedMonths.add(`${item.dataset.year}-${item.dataset.month}`);
+        });
+
         // Hide section if no previous years
         if (previousYears.length === 0) {
             this.elements.previousYearsSection.style.display = 'none';
@@ -660,6 +678,7 @@ class CadenceApp {
         
         for (const year of previousYears) {
             const months = this.getMonthsForAcademicYear(year.startYear);
+            const isYearExpanded = expandedYears.has(year.startYear.toString());
             
             let monthsHtml = '';
             for (const m of months) {
@@ -669,9 +688,10 @@ class CadenceApp {
                 });
                 const totals = this.getMonthTotals(m.year, m.month);
                 const hasHours = totals.total > 0;
+                const isMonthExpanded = expandedMonths.has(`${m.year}-${m.month}`);
                 
                 monthsHtml += `
-                    <div class="year-month-item month-item" data-year="${m.year}" data-month="${m.month}">
+                    <div class="year-month-item month-item ${isMonthExpanded ? 'expanded' : ''}" data-year="${m.year}" data-month="${m.month}">
                         <div class="month-item-header">
                             <span class="month-item-name">${monthName}</span>
                             <span class="month-item-hours ${hasHours ? 'has-hours' : ''}">${this.formatNumber(totals.total)} hrs</span>
@@ -701,7 +721,7 @@ class CadenceApp {
             }
             
             html += `
-                <div class="year-item" data-start-year="${year.startYear}">
+                <div class="year-item ${isYearExpanded ? 'expanded' : ''}" data-start-year="${year.startYear}">
                     <div class="year-item-header">
                         <span class="year-item-name">${year.label}</span>
                         <span class="year-item-hours ${year.total > 0 ? 'has-hours' : ''}">${this.formatNumber(year.total)} hrs</span>
@@ -856,6 +876,11 @@ class CadenceApp {
         const day = parseInt(this.elements.selectedDay.value);
         
         if (isNaN(day) || day <= 0) {
+            return;
+        }
+
+        if (hours < 0 || credit < 0) {
+            alert('Hours and credit cannot be negative.');
             return;
         }
         

@@ -1,0 +1,25 @@
+{
+  "name": "cadence",
+  "version": "1.0.0",
+  "description": "Cadence is a lightweight, offline-capable Progressive Web App (PWA) designed to help you track your time throughout the year. It provides a clean, calendar-based interface for logging hours and credit hours on a daily basis, with visual progress tracking toward your annual goal.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tinykings/cadence.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/tinykings/cadence/issues"
+  },
+  "homepage": "https://github.com/tinykings/cadence#readme",
+  "devDependencies": {
+    "eslint": "^9.39.2",
+    "globals": "^17.0.0"
+  }
+}
