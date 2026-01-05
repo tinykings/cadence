@@ -1,7 +1,5 @@
 <p align="center">
-
-</p>
-
+<img src="icons/icon.png" alt="Stack Logo" width="120" />
 <h1 align="center">Cadence</h1>
 
 <h3 align="center">A small time tracking app hosted with Github Pages.</h3>
