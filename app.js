@@ -95,10 +95,15 @@ class CadenceApp {
                     }
                 }
             }
+            // Ensure settings exist
+            if (!data.settings) {
+                data.settings = { startMonth: 8, endMonth: 7 }; // Default: Sept - Aug
+            }
             return data;
         }
         return {
             goal: 600,
+            settings: { startMonth: 8, endMonth: 7 },
             hours: {} // Format: { "2024-09-15": { hours: 3.5, credit: 1 }, ... }
         };
     }
@@ -108,14 +113,15 @@ class CadenceApp {
     }
 
     // ===== Year Calculation =====
-    // Year runs from September to August
+    // Year runs based on settings (Default: September to August)
     getAcademicYear(date = this.currentDate) {
         const month = date.getMonth(); // 0-11
         const year = date.getFullYear();
+        const startMonth = this.data.settings.startMonth;
         
-        // If September or later, the academic year starts this year
-        // If before September, the academic year started last year
-        if (month >= 8) { // September = 8
+        // If current month is on or after the start month, the academic year starts this year
+        // If before, the academic year started last year
+        if (month >= startMonth) {
             return { start: year, end: year + 1 };
         } else {
             return { start: year - 1, end: year };
@@ -127,21 +133,10 @@ class CadenceApp {
         return `${start}–${end.toString().slice(-2)}`;
     }
 
-    // Get all months in the academic year (September to August)
+    // Get all months in the current academic year
     getAcademicYearMonths() {
-        const { start, end } = this.getAcademicYear();
-        const months = [];
-        
-        // September (8) to December (11) of start year
-        for (let m = 8; m <= 11; m++) {
-            months.push({ year: start, month: m });
-        }
-        // January (0) to August (7) of end year
-        for (let m = 0; m <= 7; m++) {
-            months.push({ year: end, month: m });
-        }
-        
-        return months;
+        const { start } = this.getAcademicYear();
+        return this.getMonthsForAcademicYear(start);
     }
 
     // Get months before current month in the academic year
@@ -157,6 +152,7 @@ class CadenceApp {
                 break;
             }
             // Only add if we haven't reached it yet
+            // Logic: if year is less, or year is same but month is less
             if (m.year < currentYear || (m.year === currentYear && m.month < currentMonth)) {
                 previous.push(m);
             }
@@ -167,14 +163,26 @@ class CadenceApp {
 
     // Get all months for a specific academic year
     getMonthsForAcademicYear(startYear) {
+        const startM = this.data.settings.startMonth;
+        const endM = this.data.settings.endMonth;
         const months = [];
-        // September (8) to December (11) of start year
-        for (let m = 8; m <= 11; m++) {
-            months.push({ year: startYear, month: m });
-        }
-        // January (0) to August (7) of end year
-        for (let m = 0; m <= 7; m++) {
-            months.push({ year: startYear + 1, month: m });
+        
+        let currentM = startM;
+        let currentY = startYear;
+        
+        // Generate months from start to end
+        // Limit to 24 iterations to prevent infinite loops in case of weird inputs, 
+        // though logically it should finish in <= 12 usually.
+        for(let i=0; i<24; i++) {
+            months.push({ year: currentY, month: currentM });
+            
+            if (currentM === endM) break;
+            
+            currentM++;
+            if (currentM > 11) {
+                currentM = 0;
+                currentY++;
+            }
         }
         return months;
     }
@@ -314,10 +322,6 @@ class CadenceApp {
         const month = this.currentDate.getMonth();
         
         // 1. Calculate work done in the "Current Week Bucket"
-        // The bucket spans from the start of the week (or month) to the end of the week (or month).
-        // We must include ALL work in this bucket (even if it's "tomorrow") so that the 
-        // subtraction at the end (Goal - Work) reduces the needed amount 1-to-1.
-        
         const weekStart = this.getStartOfWeek(this.currentDate);
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekEnd.getDate() + 6);
@@ -363,6 +367,7 @@ class CadenceApp {
     // ===== UI Initialization =====
     init() {
         this.cacheElements();
+        this.populateMonthSelectors();
         this.bindEvents();
         this.render();
         this.bindResumeRefresh();
@@ -397,6 +402,8 @@ class CadenceApp {
             settingsBtn: document.getElementById('settingsBtn'),
             settingsModal: document.getElementById('settingsModal'),
             goalInput: document.getElementById('goalInput'),
+            startMonthSelect: document.getElementById('startMonthSelect'),
+            endMonthSelect: document.getElementById('endMonthSelect'),
             saveSettings: document.getElementById('saveSettings'),
             cancelSettings: document.getElementById('cancelSettings'),
             closeSettingsModal: document.getElementById('closeSettingsModal'),
@@ -407,6 +414,24 @@ class CadenceApp {
             themePicker: document.getElementById('themePicker'),
             checkUpdatesBtn: document.getElementById('checkUpdatesBtn')
         };
+    }
+
+    populateMonthSelectors() {
+        const months = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+        
+        const createOptions = (selected) => {
+            return months.map((m, i) => `<option value="${i}" ${i === selected ? 'selected' : ''}>${m}</option>`).join('');
+        };
+        
+        if (this.elements.startMonthSelect) {
+            this.elements.startMonthSelect.innerHTML = createOptions(this.data.settings.startMonth);
+        }
+        if (this.elements.endMonthSelect) {
+            this.elements.endMonthSelect.innerHTML = createOptions(this.data.settings.endMonth);
+        }
     }
 
     bindEvents() {
@@ -896,6 +921,15 @@ class CadenceApp {
 
     openSettingsModal() {
         this.elements.goalInput.value = this.data.goal;
+        
+        // Update selectors in case data changed externally or needs refresh
+        if (this.elements.startMonthSelect) {
+            this.elements.startMonthSelect.value = this.data.settings.startMonth;
+        }
+        if (this.elements.endMonthSelect) {
+            this.elements.endMonthSelect.value = this.data.settings.endMonth;
+        }
+        
         this.updateThemePickerUI();
         this.elements.settingsModal.classList.add('active');
         this.elements.goalInput.focus();
@@ -914,6 +948,8 @@ class CadenceApp {
 
     handleSaveSettings() {
         const goal = parseInt(this.elements.goalInput.value);
+        const startMonth = parseInt(this.elements.startMonthSelect.value);
+        const endMonth = parseInt(this.elements.endMonthSelect.value);
         
         if (isNaN(goal) || goal <= 0) {
             this.elements.goalInput.focus();
@@ -921,6 +957,8 @@ class CadenceApp {
         }
         
         this.data.goal = goal;
+        this.data.settings = { startMonth, endMonth };
+        
         this.saveData();
         this.closeSettingsModal();
         this.render();
@@ -928,7 +966,14 @@ class CadenceApp {
 
     handleClearData() {
         if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
-            this.data = { goal: 600, hours: {} };
+            // Preserve settings when clearing data? 
+            // Usually "Clear All Data" implies user data, but maybe settings too.
+            // I'll reset settings to default to be safe/thorough as per "Clear All"
+            this.data = { 
+                goal: 600, 
+                settings: { startMonth: 8, endMonth: 7 },
+                hours: {} 
+            };
             this.saveData();
             this.closeSettingsModal();
             this.render();
@@ -1012,6 +1057,11 @@ class CadenceApp {
                         }
                     }
                     
+                    // Ensure settings exist if importing old data
+                    if (!this.data.settings) {
+                        this.data.settings = { startMonth: 8, endMonth: 7 };
+                    }
+                    
                     this.saveData();
                     this.closeSettingsModal();
                     this.render();
@@ -1033,4 +1083,3 @@ class CadenceApp {
 document.addEventListener('DOMContentLoaded', () => {
     window.cadenceApp = new CadenceApp();
 });
-
