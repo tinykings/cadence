@@ -781,6 +781,9 @@ body {
     box-shadow: var(--shadow-lg);
     transform: scale(0.9) translateY(20px);
     transition: transform var(--transition-normal);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .modal-overlay.active .modal {
@@ -793,6 +796,7 @@ body {
     align-items: center;
     padding: 20px 24px;
     border-bottom: 1px solid var(--bg-tertiary);
+    flex-shrink: 0;
 }
 
 .modal-header h3 {
@@ -825,6 +829,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    overflow-y: auto;
 }
 
 .form-row {
@@ -878,6 +883,7 @@ body {
     gap: 12px;
     padding: 20px 24px;
     border-top: 1px solid var(--bg-tertiary);
+    flex-shrink: 0;
 }
 
 .btn {
