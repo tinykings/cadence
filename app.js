@@ -356,7 +356,12 @@ class CadenceApp {
         const daysRemainingAtStart = daysInMonth - effectiveStartDay + 1;
         const weeksRemainingAtStart = Math.max(1, daysRemainingAtStart / 7);
         
-        const weeklyGoal = Math.ceil(monthlyNeededAtStart / weeksRemainingAtStart);
+        // We only need to reach the monthly target. Subtract what was already done this month before this week.
+        const monthTotals = this.getMonthTotals(year, month);
+        const workDoneInMonthBeforeThisWeek = monthTotals.total - workDoneInWeekBucket;
+        const remainingForMonthAtStart = Math.max(0, monthlyNeededAtStart - workDoneInMonthBeforeThisWeek);
+        
+        const weeklyGoal = Math.ceil(remainingForMonthAtStart / weeksRemainingAtStart);
         
         // 5. Subtract work done in the bucket to see what's left
         const needed = weeklyGoal - workDoneInWeekBucket;
