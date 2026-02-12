@@ -1,26 +1,20 @@
-const CACHE_NAME = 'cadence-v5';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'cadence-v6';
+const PRECACHE_ASSETS = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './manifest.json',
-  './icons/icon.png',
-  'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap'
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
-// Install event - cache assets
+// Install event - precache critical assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Caching app assets');
-        return cache.addAll(ASSETS_TO_CACHE);
-      })
-      .then(() => {
-        // Force the waiting service worker to become active
-        return self.skipWaiting();
-      })
+      .then((cache) => cache.addAll(PRECACHE_ASSETS))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -35,62 +29,72 @@ self.addEventListener('activate', (event) => {
             .map((name) => caches.delete(name))
         );
       })
-      .then(() => {
-        // Take control of all pages immediately
-        return self.clients.claim();
-      })
+      .then(() => self.clients.claim())
   );
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - stale-while-revalidate for app assets, cache-first for fonts/images
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') {
+  if (event.request.method !== 'GET') return;
+
+  const url = new URL(event.request.url);
+
+  // Cache-first for fonts and images (they rarely change)
+  if (url.hostname === 'fonts.googleapis.com' ||
+      url.hostname === 'fonts.gstatic.com' ||
+      event.request.destination === 'image') {
+    event.respondWith(cacheFirst(event.request));
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request)
-      .then((cachedResponse) => {
-        if (cachedResponse) {
-          // Return cached version
-          return cachedResponse;
-        }
-
-        // Not in cache, fetch from network
-        return fetch(event.request)
-          .then((response) => {
-            // Don't cache non-successful responses or non-same-origin
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              // For fonts and external resources, still cache them
-              if (response && response.status === 200) {
-                const responseClone = response.clone();
-                caches.open(CACHE_NAME)
-                  .then((cache) => {
-                    cache.put(event.request, responseClone);
-                  });
-              }
-              return response;
-            }
-
-            // Clone the response for caching
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseClone);
-              });
-
-            return response;
-          })
-          .catch(() => {
-            // Network failed, return offline page if available
-            if (event.request.mode === 'navigate') {
-              return caches.match('./index.html');
-            }
-          });
-      })
-  );
+  // Stale-while-revalidate for app assets (HTML, JS, CSS)
+  event.respondWith(staleWhileRevalidate(event.request));
 });
+
+async function cacheFirst(request) {
+  const cached = await caches.match(request);
+  if (cached) return cached;
+
+  try {
+    const response = await fetch(request);
+    if (response && response.status === 200) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch {
+    // Offline fallback for navigation
+    if (request.mode === 'navigate') {
+      return caches.match('./index.html');
+    }
+  }
+}
+
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
+
+  // Fetch fresh copy in the background
+  const fetchPromise = fetch(request).then((response) => {
+    if (response && response.status === 200) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  }).catch(() => null);
+
+  // Return cached version immediately if available, otherwise wait for network
+  if (cached) return cached;
+
+  try {
+    const response = await fetchPromise;
+    if (response) return response;
+  } catch { /* fall through */ }
+
+  // Last resort: offline navigation fallback
+  if (request.mode === 'navigate') {
+    return caches.match('./index.html');
+  }
+}
 
 // Handle messages from the app
 self.addEventListener('message', (event) => {
@@ -98,4 +102,3 @@ self.addEventListener('message', (event) => {
     self.skipWaiting();
   }
 });
-
