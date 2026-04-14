@@ -139,6 +139,15 @@ class CadenceApp {
         return this.getMonthsForAcademicYear(start);
     }
 
+    // Check if a day is in the future (tomorrow or later)
+    isFutureDay(year, month, day) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const dayDate = new Date(year, month, day);
+        dayDate.setHours(0, 0, 0, 0);
+        return dayDate > today;
+    }
+
     // Get months before current month in the academic year
     getPreviousMonths() {
         const allMonths = this.getAcademicYearMonths();
@@ -270,6 +279,58 @@ class CadenceApp {
         return { hours, credit, total: hours + credit };
     }
 
+    // Get hours from future days only in a month
+    getPlannedHoursForMonth(year, month) {
+        let planned = 0;
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        for (let d = 1; d <= daysInMonth; d++) {
+            if (this.isFutureDay(year, month, d)) {
+                const dayData = this.getDayData(year, month, d);
+                planned += dayData.hours + dayData.credit;
+            }
+        }
+        
+        return planned;
+    }
+
+    // Get all planned hours (future days) for the academic year
+    getPlannedHoursForYear() {
+        const months = this.getAcademicYearMonths();
+        let planned = 0;
+        
+        for (const m of months) {
+            planned += this.getPlannedHoursForMonth(m.year, m.month);
+        }
+        
+        return planned;
+    }
+
+    // Get planned hours for current displayed week
+    getPlannedHoursForWeek() {
+        const year = this.currentDate.getFullYear();
+        const month = this.currentDate.getMonth();
+        
+        const weekStart = this.getStartOfWeek(this.currentDate);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+        
+        let planned = 0;
+        
+        // Only count days in the current displayed month
+        for (let d = 1; d <= new Date(year, month + 1, 0).getDate(); d++) {
+            if (this.isFutureDay(year, month, d)) {
+                const dayDate = new Date(year, month, d);
+                if (dayDate >= weekStart && dayDate <= weekEnd) {
+                    const dayData = this.getDayData(year, month, d);
+                    planned += dayData.hours + dayData.credit;
+                }
+            }
+        }
+        
+        return planned;
+    }
+
     getYearTotal() {
         const months = this.getAcademicYearMonths();
         let total = 0;
@@ -279,7 +340,10 @@ class CadenceApp {
             total += monthTotals.total;
         }
         
-        return total;
+        // Subtract planned future hours
+        const planned = this.getPlannedHoursForYear();
+        
+        return total - planned;
     }
 
     getRemainingMonths() {
@@ -336,7 +400,9 @@ class CadenceApp {
             
         let workDoneInWeekBucket = 0;
         for (let d = effectiveStartDay; d <= effectiveEndDay; d++) {
-            workDoneInWeekBucket += this.getDayTotal(year, month, d);
+            if (!this.isFutureDay(year, month, d)) {
+                workDoneInWeekBucket += this.getDayTotal(year, month, d);
+            }
         }
         
         // 2. Calculate what the year total was BEFORE any work in this week bucket
@@ -358,7 +424,8 @@ class CadenceApp {
         
         // We only need to reach the monthly target. Subtract what was already done this month before this week.
         const monthTotals = this.getMonthTotals(year, month);
-        const workDoneInMonthBeforeThisWeek = monthTotals.total - workDoneInWeekBucket;
+        const plannedInMonth = this.getPlannedHoursForMonth(year, month);
+        const workDoneInMonthBeforeThisWeek = monthTotals.total - plannedInMonth - workDoneInWeekBucket;
         const remainingForMonthAtStart = Math.max(0, monthlyNeededAtStart - workDoneInMonthBeforeThisWeek);
         
         const weeklyGoal = Math.ceil(remainingForMonthAtStart / weeksRemainingAtStart);
@@ -386,6 +453,7 @@ class CadenceApp {
             progressRing: document.getElementById('progressRing'),
             monthlyAvg: document.getElementById('monthlyAvg'),
             weeklyNeeded: document.getElementById('weeklyNeeded'),
+            plannedHours: document.getElementById('plannedHours'),
             currentMonthName: document.getElementById('currentMonthName'),
             currentCalendar: document.getElementById('currentCalendar'),
             currentMonthHours: document.getElementById('currentMonthHours'),
@@ -515,11 +583,13 @@ class CadenceApp {
         const percentage = Math.min((total / goal) * 100, 100);
         const avgNeeded = this.getMonthlyAverageNeeded();
         const weeklyNeeded = this.getWeeklyHoursNeeded();
+        const plannedMonth = this.getPlannedHoursForMonth(this.currentDate.getFullYear(), this.currentDate.getMonth());
         
         this.elements.totalHours.textContent = total.toFixed(1).replace(/\.0$/, '');
         this.elements.goalHours.textContent = goal;
         this.elements.monthlyAvg.textContent = avgNeeded;
         this.elements.weeklyNeeded.textContent = weeklyNeeded;
+        this.elements.plannedHours.textContent = plannedMonth;
         
         // Update progress ring
         this.elements.progressRing.setAttribute('stroke-dasharray', `${percentage}, 100`);
@@ -582,10 +652,12 @@ class CadenceApp {
             const dayTotal = this.getDayTotal(year, month, d);
             const hasHours = dayTotal > 0;
             const isToday = d === todayDate;
+            const isFuture = this.isFutureDay(year, month, d);
             
             let classes = 'calendar-day';
             if (hasHours) classes += ' has-hours';
             if (isToday) classes += ' today';
+            if (hasHours && isFuture) classes += ' planned';
             
             html += `
                 <div class="${classes}">

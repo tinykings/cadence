@@ -273,6 +273,10 @@ body {
     margin-top: 6px;
 }
 
+.stat-sublabel.planned-label {
+    color: #3b82f6;
+}
+
 /* ===== Current Month Section ===== */
 .current-month-section {
     background: var(--bg-secondary);
@@ -373,6 +377,15 @@ body {
     background: var(--accent-subtle);
     color: var(--text-primary);
     border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.calendar-day.has-hours.planned {
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.calendar-day.has-hours.planned:hover {
+    background: rgba(59, 130, 246, 0.3);
 }
 
 .calendar-day.has-hours.today {
