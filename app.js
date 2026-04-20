@@ -271,9 +271,11 @@ class CadenceApp {
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         
         for (let d = 1; d <= daysInMonth; d++) {
-            const dayData = this.getDayData(year, month, d);
-            hours += dayData.hours;
-            credit += dayData.credit;
+            if (!this.isFutureDay(year, month, d)) {
+                const dayData = this.getDayData(year, month, d);
+                hours += dayData.hours;
+                credit += dayData.credit;
+            }
         }
         
         return { hours, credit, total: hours + credit };
@@ -340,10 +342,7 @@ class CadenceApp {
             total += monthTotals.total;
         }
         
-        // Subtract planned future hours
-        const planned = this.getPlannedHoursForYear();
-        
-        return total - planned;
+        return total;
     }
 
     getRemainingMonths() {
