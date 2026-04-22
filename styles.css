@@ -155,6 +155,26 @@ body {
     animation: fadeInUp 0.5s ease 0.1s both;
 }
 
+.floating-top {
+    margin-bottom: 28px;
+}
+
+.floating-top .stats-bar {
+    margin-bottom: 18px;
+}
+
+@media (max-width: 768px) {
+    .floating-top {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        padding-top: env(safe-area-inset-top);
+        background: linear-gradient(180deg, rgba(15, 15, 15, 0.98) 0%, rgba(15, 15, 15, 0.92) 72%, rgba(15, 15, 15, 0) 100%);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+}
+
 .stats-summary {
     width: 100%;
     text-align: center;
@@ -1214,6 +1234,11 @@ body {
 @media (max-width: 400px) {
     html {
         font-size: 16px;
+    }
+
+    .floating-top {
+        margin-bottom: 20px;
+        padding-bottom: 8px;
     }
     
     .app-container {

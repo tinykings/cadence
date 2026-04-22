@@ -36,38 +36,41 @@
 </head>
     <body>
     <div class="app-container">
-        <section class="stats-bar">
-            <div class="stats-summary">
-                <div class="monthly-celebration" id="monthlyCelebration">
-                    <p class="stat-line stat-line-secondary monthly-summary">
-                        <span class="stat-label">You need</span>
-                        <span class="stat-value stat-value-secondary" id="monthlyAvg">0</span>
-                        <span class="stat-label" id="monthlyUnit">more hours this month</span>
-                    </p>
-                </div>
-                <p class="stat-line stat-line-tertiary planned-summary">
-                    <span class="stat-meta" id="plannedLine">You have 0 hours planned</span>
-                </p>
-                <p class="stat-line stat-line-tertiary weekly-summary">
-                    <span class="stat-meta" id="weeklyLine">0 more hours needed this week</span>
-                </p>
-                <div class="progress-bar progress-bar-hero" id="progressBarHero" aria-label="Year progress toward goal">
-                    <div class="progress-bar-track">
-                        <div class="progress-bar-fill" id="progressBarFill"></div>
-                        <span class="progress-bar-current" id="totalHours">0</span>
+        <div class="floating-top">
+            <section class="stats-bar">
+                <div class="stats-summary">
+                    <div class="monthly-celebration" id="monthlyCelebration">
+                        <p class="stat-line stat-line-secondary monthly-summary">
+                            <span class="stat-label">You need</span>
+                            <span class="stat-value stat-value-secondary" id="monthlyAvg">0</span>
+                            <span class="stat-label" id="monthlyUnit">more hours this month</span>
+                        </p>
                     </div>
+                    <p class="stat-line stat-line-tertiary planned-summary">
+                        <span class="stat-meta" id="plannedLine">You have 0 hours planned</span>
+                    </p>
+                    <p class="stat-line stat-line-tertiary weekly-summary">
+                        <span class="stat-meta" id="weeklyLine">0 more hours needed this week</span>
+                    </p>
+                    <div class="progress-bar progress-bar-hero" id="progressBarHero" aria-label="Year progress toward goal">
+                        <div class="progress-bar-track">
+                            <div class="progress-bar-fill" id="progressBarFill"></div>
+                            <span class="progress-bar-current" id="totalHours">0</span>
+                        </div>
+                    </div>
+                    <p class="progress-bar-note" id="progressBarNote"></p>
                 </div>
-                <p class="progress-bar-note" id="progressBarNote"></p>
-            </div>
-        </section>
+            </section>
 
-        <section class="current-month-section">
             <div class="month-header">
                 <h2 id="currentMonthName"></h2>
                 <button class="add-btn" id="addTimeBtn" aria-label="Add time">
                     <span>+</span>
                 </button>
             </div>
+        </div>
+
+        <section class="current-month-section">
             <div class="calendar" id="currentCalendar"></div>
             <div class="month-totals">
                 <div class="month-total-row">
