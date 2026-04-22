@@ -5,6 +5,7 @@ class CadenceApp {
         this.data = this.loadData();
         this.currentDate = new Date();
         this._currentDateKey = this.getDateKey(this.currentDate);
+        this.statsAnimated = false;
         this.loadTheme();
         this.disableScrollRestoration();
         this.init();
@@ -18,6 +19,31 @@ class CadenceApp {
 
     resetScrollPosition() {
         window.scrollTo(0, 0);
+    }
+
+    formatHours(value) {
+        return value.toFixed(1).replace(/\.0$/, '');
+    }
+
+    animateProgressLoad(total, percentage, markerProgress) {
+        const duration = 1400;
+        const start = performance.now();
+
+        const tick = (now) => {
+            const elapsed = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - elapsed, 3);
+            const current = total * eased;
+
+            this.elements.totalHours.textContent = this.formatHours(current);
+            this.elements.progressBarFill.style.width = `${percentage * eased}%`;
+            this.elements.progressBarHero.style.setProperty('--progress', `${markerProgress * eased}%`);
+
+            if (elapsed < 1) {
+                requestAnimationFrame(tick);
+            }
+        };
+
+        requestAnimationFrame(tick);
     }
 
     // ===== Date helpers (for PWA resume) =====
@@ -464,9 +490,10 @@ class CadenceApp {
 
     cacheElements() {
         this.elements = {
-            goalHours: document.getElementById('goalHours'),
+            progressBarHero: document.getElementById('progressBarHero'),
             progressBarFill: document.getElementById('progressBarFill'),
             totalHours: document.getElementById('totalHours'),
+            goalHours: document.getElementById('goalHours'),
             monthlyAvg: document.getElementById('monthlyAvg'),
             monthlyUnit: document.getElementById('monthlyUnit'),
             weeklyLine: document.getElementById('weeklyLine'),
@@ -603,14 +630,25 @@ class CadenceApp {
         const weeklyNeeded = this.getWeeklyHoursNeeded();
         const plannedMonth = this.getPlannedHoursForMonth(this.currentDate.getFullYear(), this.currentDate.getMonth());
         
-        this.elements.totalHours.textContent = `${total.toFixed(1).replace(/\.0$/, '')} hrs`;
+        this.elements.totalHours.textContent = this.formatHours(total);
         this.elements.goalHours.textContent = goal;
         this.elements.monthlyAvg.textContent = avgNeeded;
         this.elements.monthlyUnit.textContent = avgNeeded === 1 ? 'more hour this month' : 'more hours this month';
         this.elements.weeklyLine.textContent = `${weeklyNeeded} more ${weeklyNeeded === 1 ? 'hour' : 'hours'} needed this week`;
         this.elements.plannedLine.textContent = `You have ${plannedMonth} ${plannedMonth === 1 ? 'hour' : 'hours'} planned`;
+
+        if (!this.statsAnimated) {
+            this.elements.totalHours.textContent = '0';
+            this.elements.progressBarFill.style.width = '0%';
+            this.elements.progressBarHero.style.setProperty('--progress', '0%');
+            this.animateProgressLoad(total, percentage, markerProgress);
+            this.statsAnimated = true;
+            return;
+        }
+
+        this.elements.totalHours.textContent = this.formatHours(total);
         this.elements.progressBarFill.style.width = `${percentage}%`;
-        this.elements.totalHours.style.setProperty('--progress', `${markerProgress}%`);
+        this.elements.progressBarHero.style.setProperty('--progress', `${markerProgress}%`);
     }
 
     renderCurrentMonth() {
