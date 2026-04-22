@@ -54,6 +54,7 @@ class CadenceApp {
 
         this.elements.progressBarHero.style.setProperty('--goal-shine', shine.toFixed(3));
         this.elements.progressBarHero.style.setProperty('--goal-glow', glow.toFixed(3));
+        this.elements.progressBarHero.style.setProperty('--goal-pill-glow', shine.toFixed(3));
     }
 
     animateStatsChange(startTotal, startGoal, endTotal, endGoal) {
