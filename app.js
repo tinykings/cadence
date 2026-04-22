@@ -9,6 +9,7 @@ class CadenceApp {
         this.currentStatsGoal = this.data.goal;
         this.statsAnimationFrame = null;
         this.goalBurstFrame = null;
+        this.scrollLockY = 0;
         this.loadTheme();
         this.disableScrollRestoration();
         this.init();
@@ -22,6 +23,18 @@ class CadenceApp {
 
     resetScrollPosition() {
         window.scrollTo(0, 0);
+    }
+
+    lockBodyScroll() {
+        this.scrollLockY = window.scrollY || document.documentElement.scrollTop || 0;
+        document.body.classList.add('modal-open');
+        document.body.style.top = `-${this.scrollLockY}px`;
+    }
+
+    unlockBodyScroll() {
+        document.body.classList.remove('modal-open');
+        document.body.style.top = '';
+        window.scrollTo(0, this.scrollLockY);
     }
 
     formatHours(value) {
@@ -1175,6 +1188,7 @@ class CadenceApp {
         });
         
         // Show modal
+        this.lockBodyScroll();
         this.elements.addTimeModal.classList.add('active');
         this.elements.hoursInput.focus();
     }
@@ -1230,6 +1244,7 @@ class CadenceApp {
 
     closeAddModal() {
         this.elements.addTimeModal.classList.remove('active');
+        this.unlockBodyScroll();
     }
 
     handleAddHours() {
@@ -1266,8 +1281,9 @@ class CadenceApp {
         if (this.elements.endMonthSelect) {
             this.elements.endMonthSelect.value = this.data.settings.endMonth;
         }
-        
+
         this.updateThemePickerUI();
+        this.lockBodyScroll();
         this.elements.settingsModal.classList.add('active');
         this.elements.goalInput.focus();
     }
@@ -1281,6 +1297,7 @@ class CadenceApp {
 
     closeSettingsModal() {
         this.elements.settingsModal.classList.remove('active');
+        this.unlockBodyScroll();
     }
 
     handleSaveSettings() {

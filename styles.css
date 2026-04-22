@@ -140,6 +140,12 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
+body.modal-open {
+    position: fixed;
+    width: 100%;
+    overflow: hidden;
+}
+
 /* ===== App Container ===== */
 .app-container {
     max-width: 480px;
@@ -153,26 +159,6 @@ body {
 .stats-bar {
     margin-bottom: 28px;
     animation: fadeInUp 0.5s ease 0.1s both;
-}
-
-.floating-top {
-    margin-bottom: 28px;
-}
-
-.floating-top .stats-bar {
-    margin-bottom: 18px;
-}
-
-@media (max-width: 768px) {
-    .floating-top {
-        position: sticky;
-        top: 0;
-        z-index: 30;
-        padding-top: env(safe-area-inset-top);
-        background: linear-gradient(180deg, rgba(15, 15, 15, 0.98) 0%, rgba(15, 15, 15, 0.92) 72%, rgba(15, 15, 15, 0) 100%);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-    }
 }
 
 .stats-summary {
@@ -953,6 +939,8 @@ body {
     align-items: center;
     justify-content: center;
     padding: 20px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     opacity: 0;
     visibility: hidden;
     transition: all var(--transition-normal);
@@ -1234,11 +1222,6 @@ body {
 @media (max-width: 400px) {
     html {
         font-size: 16px;
-    }
-
-    .floating-top {
-        margin-bottom: 20px;
-        padding-bottom: 8px;
     }
     
     .app-container {
