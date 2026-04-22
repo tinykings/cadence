@@ -8,6 +8,7 @@ class CadenceApp {
         this.currentStatsTotal = 0;
         this.currentStatsGoal = this.data.goal;
         this.statsAnimationFrame = null;
+        this.monthlySparkFrame = null;
         this.loadTheme();
         this.disableScrollRestoration();
         this.init();
@@ -25,6 +26,20 @@ class CadenceApp {
 
     formatHours(value) {
         return value.toFixed(1).replace(/\.0$/, '');
+    }
+
+    getSafeMarkerProgress(progress) {
+        const track = this.elements.progressBarFill?.parentElement;
+        const pill = this.elements.totalHours;
+
+        if (!track || !pill) return progress;
+
+        const trackWidth = track.clientWidth;
+        const pillWidth = pill.offsetWidth;
+        if (!trackWidth || !pillWidth) return progress;
+
+        const maxProgress = 100 - ((pillWidth / trackWidth) * 50) - 1.5;
+        return Math.min(progress, Math.max(6, maxProgress));
     }
 
     animateStatsChange(startTotal, startGoal, endTotal, endGoal) {
@@ -46,7 +61,7 @@ class CadenceApp {
             const eased = 1 - Math.pow(1 - elapsed, 3);
             const current = startTotal + ((endTotal - startTotal) * eased);
             const currentPercentage = startPercentage + ((endPercentage - startPercentage) * eased);
-            const currentMarker = startMarker + ((endMarker - startMarker) * eased);
+            const currentMarker = this.getSafeMarkerProgress(startMarker + ((endMarker - startMarker) * eased));
 
             this.elements.totalHours.textContent = this.formatHours(current);
             this.elements.progressBarFill.style.width = `${currentPercentage}%`;
@@ -57,12 +72,132 @@ class CadenceApp {
                 this.statsAnimationFrame = requestAnimationFrame(tick);
             } else {
                 this.currentStatsTotal = endTotal;
-                this.elements.progressBarHero.classList.toggle('is-full', endTotal >= endGoal);
                 this.statsAnimationFrame = null;
             }
         };
 
         this.statsAnimationFrame = requestAnimationFrame(tick);
+    }
+
+    clearMonthlyCelebration() {
+        if (this.monthlySparkFrame) {
+            cancelAnimationFrame(this.monthlySparkFrame);
+            this.monthlySparkFrame = null;
+        }
+
+        const canvas = this.elements.monthlySparkCanvas;
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        this.elements.monthlyCelebration?.classList.remove('celebrate-zero');
+    }
+
+    celebrateMonthlyZero() {
+        const canvas = this.elements.monthlySparkCanvas;
+        const wrap = this.elements.monthlyCelebration;
+        const target = this.elements.monthlyAvg;
+
+        if (!canvas || !wrap || !target) return;
+
+        if (this.monthlySparkFrame) {
+            cancelAnimationFrame(this.monthlySparkFrame);
+            this.monthlySparkFrame = null;
+        }
+
+        wrap.classList.remove('celebrate-zero');
+        void wrap.offsetWidth;
+        wrap.classList.add('celebrate-zero');
+
+        const wrapRect = wrap.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const insetX = 18;
+        const insetY = 14;
+        canvas.width = Math.max(1, Math.ceil(wrapRect.width + insetX * 2));
+        canvas.height = Math.max(1, Math.ceil(wrapRect.height + insetY * 2));
+        canvas.style.left = `${-insetX}px`;
+        canvas.style.top = `${-insetY}px`;
+
+        const ctx = canvas.getContext('2d');
+        const originX = (targetRect.left - wrapRect.left) + (targetRect.width / 2) + insetX;
+        const originY = (targetRect.top - wrapRect.top) + (targetRect.height / 2) + insetY;
+
+        const particles = Array.from({ length: 28 }, () => {
+            const angle = (Math.PI * 2 * Math.random()) - Math.PI / 2;
+            const speed = 2.2 + Math.random() * 4.2;
+            return {
+                x: originX,
+                y: originY,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - (1.4 + Math.random() * 1.8),
+                rot: Math.random() * Math.PI,
+                vr: (Math.random() - 0.5) * 0.25,
+                life: 0,
+                ttl: 700 + Math.random() * 420,
+                size: 3.5 + Math.random() * 5.5,
+                glow: Math.random() > 0.55,
+            };
+        });
+
+        const drawStar = (x, y, spikes, outerRadius, innerRadius, rotation) => {
+            ctx.beginPath();
+            let rot = rotation - Math.PI / 2;
+            const step = Math.PI / spikes;
+            ctx.moveTo(x + Math.cos(rot) * outerRadius, y + Math.sin(rot) * outerRadius);
+            for (let i = 0; i < spikes; i++) {
+                ctx.lineTo(x + Math.cos(rot) * outerRadius, y + Math.sin(rot) * outerRadius);
+                rot += step;
+                ctx.lineTo(x + Math.cos(rot) * innerRadius, y + Math.sin(rot) * innerRadius);
+                rot += step;
+            }
+            ctx.closePath();
+        };
+
+        const start = performance.now();
+        const sparkDelay = 220;
+        const duration = 1400;
+
+        const frame = (now) => {
+            const elapsed = now - start;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (elapsed < sparkDelay) {
+                this.monthlySparkFrame = requestAnimationFrame(frame);
+                return;
+            }
+
+            const sparkT = Math.min((elapsed - sparkDelay) / (duration - sparkDelay), 1);
+
+            for (const p of particles) {
+                p.life += 16;
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.08;
+                p.rot += p.vr;
+
+                const alpha = Math.max(0, 1 - (p.life / p.ttl));
+                if (alpha <= 0) continue;
+
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = p.glow ? 'rgba(255, 224, 138, 0.95)' : 'rgba(255, 255, 255, 0.92)';
+                ctx.shadowColor = 'rgba(245, 158, 11, 0.55)';
+                ctx.shadowBlur = p.glow ? 12 : 6;
+                drawStar(p.x, p.y, 5, p.size, p.size * 0.45, p.rot);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            if (sparkT < 1) {
+                this.monthlySparkFrame = requestAnimationFrame(frame);
+            } else {
+                this.monthlySparkFrame = null;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        };
+
+        this.monthlySparkFrame = requestAnimationFrame(frame);
     }
 
     // ===== Date helpers (for PWA resume) =====
@@ -512,6 +647,8 @@ class CadenceApp {
             progressBarHero: document.getElementById('progressBarHero'),
             progressBarFill: document.getElementById('progressBarFill'),
             totalHours: document.getElementById('totalHours'),
+            monthlyCelebration: document.getElementById('monthlyCelebration'),
+            monthlySparkCanvas: document.getElementById('monthlySparkCanvas'),
             monthlyAvg: document.getElementById('monthlyAvg'),
             monthlyUnit: document.getElementById('monthlyUnit'),
             weeklyLine: document.getElementById('weeklyLine'),
@@ -652,13 +789,18 @@ class CadenceApp {
         this.elements.weeklyLine.textContent = `${weeklyNeeded} more ${weeklyNeeded === 1 ? 'hour' : 'hours'} needed this week`;
         this.elements.plannedLine.textContent = `You have ${plannedMonth} ${plannedMonth === 1 ? 'hour' : 'hours'} planned`;
 
+        if (avgNeeded === 0) {
+            this.celebrateMonthlyZero();
+        } else {
+            this.clearMonthlyCelebration();
+        }
+
         const statsChanged = Math.abs(this.currentStatsTotal - total) > 0.01 || this.currentStatsGoal !== goal;
 
         if (!statsChanged && !this.statsAnimationFrame) {
             this.elements.totalHours.textContent = this.formatHours(total);
-            this.elements.progressBarHero.classList.toggle('is-full', total >= goal);
             this.elements.progressBarFill.style.width = `${percentage}%`;
-            this.elements.progressBarHero.style.setProperty('--progress', `${percentage >= 100 ? 100 : Math.min(Math.max(percentage, 6), 94)}%`);
+            this.elements.progressBarHero.style.setProperty('--progress', `${this.getSafeMarkerProgress(percentage >= 100 ? 100 : Math.min(Math.max(percentage, 6), 94))}%`);
             return;
         }
 

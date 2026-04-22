@@ -38,11 +38,14 @@
     <div class="app-container">
         <section class="stats-bar">
             <div class="stats-summary">
-                <p class="stat-line stat-line-secondary">
-                    <span class="stat-label">You need</span>
-                    <span class="stat-value stat-value-secondary" id="monthlyAvg">0</span>
-                    <span class="stat-label" id="monthlyUnit">more hours this month</span>
-                </p>
+                <div class="monthly-celebration" id="monthlyCelebration">
+                    <canvas class="monthly-spark-canvas" id="monthlySparkCanvas" aria-hidden="true"></canvas>
+                    <p class="stat-line stat-line-secondary monthly-summary">
+                        <span class="stat-label">You need</span>
+                        <span class="stat-value stat-value-secondary" id="monthlyAvg">0</span>
+                        <span class="stat-label" id="monthlyUnit">more hours this month</span>
+                    </p>
+                </div>
                 <p class="stat-line stat-line-tertiary planned-summary">
                     <span class="stat-meta" id="plannedLine">You have 0 hours planned</span>
                 </p>
