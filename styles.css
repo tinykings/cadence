@@ -149,132 +149,144 @@ body {
     min-height: 100dvh;
 }
 
-/* ===== Header ===== */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    animation: fadeInDown 0.5s ease;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.logo-icon {
-    font-size: 2rem;
-    color: var(--accent-primary);
-    text-shadow: 0 0 20px var(--accent-glow);
-}
-
-.logo h1 {
-    font-size: 1.75rem;
-    font-weight: 600;
-    letter-spacing: -0.5px;
-    background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.year-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    background: var(--bg-tertiary);
-    padding: 6px 12px;
-    border-radius: var(--radius-sm);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
 /* ===== Stats Bar ===== */
 .stats-bar {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
     margin-bottom: 28px;
     animation: fadeInUp 0.5s ease 0.1s both;
 }
 
-.stat-card {
-    background: var(--bg-secondary);
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    position: relative;
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
-}
-
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.stat-card.total-hours {
-    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+.stats-summary {
+    width: 100%;
+    text-align: center;
+    padding: 0;
 }
 
 .stat-value {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 2.2rem;
+    font-size: 2.3rem;
     font-weight: 500;
     color: var(--accent-primary);
-    display: block;
     line-height: 1;
-    margin-bottom: 4px;
 }
 
 .stat-label {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     color: var(--text-secondary);
 }
 
-.progress-ring {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 48px;
-    height: 48px;
-    overflow: visible;
+.stat-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.35rem 0.5rem;
 }
 
-.progress-ring svg {
-    transform: rotate(-90deg);
-    overflow: visible;
-}
-
-.progress-bg {
-    fill: none;
-    stroke: var(--bg-tertiary);
-    stroke-width: 3;
-}
-
-.progress-fill {
-    fill: none;
-    stroke: var(--accent-primary);
-    stroke-width: 3;
-    stroke-linecap: round;
-    transition: stroke-dasharray var(--transition-slow);
-    filter: drop-shadow(0 0 4px var(--accent-primary));
-}
-
-.monthly-avg .stat-value {
-    color: var(--accent-primary);
-}
-
-.stat-sublabel {
-    display: block;
-    font-size: 0.85rem;
-    color: var(--accent-primary);
+.stat-line + .stat-line {
     margin-top: 6px;
 }
 
-.stat-sublabel.planned-label {
-    color: #3b82f6;
+.planned-summary {
+    margin-bottom: 4px;
+}
+
+.weekly-summary {
+    margin-top: 0;
+    margin-bottom: 25px;
+}
+
+.stat-line.weekly-summary {
+    margin-top: 2px;
+}
+
+.planned-summary .stat-label,
+.planned-summary .stat-value,
+.weekly-summary .stat-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.planned-summary .stat-value {
+    font-size: 1rem;
+    font-weight: 400;
+}
+
+.weekly-summary .stat-meta {
+    font-size: 0.8rem;
+    font-weight: 400;
+}
+
+.stat-value-secondary {
+    font-size: 1.55rem;
+}
+
+.stat-meta {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.stat-meta-right {
+    margin-left: auto;
+}
+
+.stat-divider {
+    color: var(--text-muted);
+}
+
+.progress-bar-hero {
+    margin-bottom: 16px;
+}
+
+.progress-bar-track {
+    position: relative;
+    height: 18px;
+    border-radius: 999px;
+    overflow: visible;
+    background: var(--bg-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.progress-bar-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary));
+    box-shadow: 0 0 18px var(--accent-glow-strong);
+    transition: width var(--transition-slow);
+}
+
+.progress-bar-current {
+    position: absolute;
+    top: 50%;
+    left: var(--progress, 0%);
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    font-weight: 500;
+    color: var(--bg-primary);
+    background: var(--accent-primary);
+    padding: 4px 10px;
+    border-radius: 999px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35), 0 0 18px var(--accent-glow-strong);
+}
+
+.progress-bar-goal {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-primary);
+    opacity: 0.85;
 }
 
 /* ===== Current Month Section ===== */
@@ -1062,16 +1074,30 @@ body {
         padding: 16px 12px 100px;
     }
     
-    .stats-bar {
-        gap: 12px;
-    }
-    
-    .stat-card {
-        padding: 16px;
-    }
-    
     .stat-value {
         font-size: 1.8rem;
+    }
+
+    .stat-value-secondary {
+        font-size: 1.35rem;
+    }
+
+    .stat-label,
+    .stat-meta {
+        font-size: 0.82rem;
+    }
+
+    .progress-bar-track {
+        height: 16px;
+    }
+
+    .progress-bar-current {
+        font-size: 0.68rem;
+        padding: 3px 8px;
+    }
+
+    .progress-bar-goal {
+        font-size: 0.66rem;
     }
     
     .current-month-section {

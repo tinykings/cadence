@@ -34,40 +34,30 @@
 
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+    <body>
     <div class="app-container">
-        <header class="header">
-            <div class="logo">
-                <h1>Cadence</h1>
-            </div>
-            <div class="year-label" id="yearLabel"></div>
-        </header>
-
         <section class="stats-bar">
-            <div class="stat-card total-hours">
-                <span class="stat-value" id="totalHours">0</span>
-                <span class="stat-label">of <span id="goalHours">600</span> hours</span>
-                <div class="progress-ring">
-                    <svg viewBox="0 0 36 36">
-                        <path class="progress-bg"
-                            d="M18 2.0845
-                            a 15.9155 15.9155 0 0 1 0 31.831
-                            a 15.9155 15.9155 0 0 1 0 -31.831"
-                        />
-                        <path class="progress-fill" id="progressRing"
-                            d="M18 2.0845
-                            a 15.9155 15.9155 0 0 1 0 31.831
-                            a 15.9155 15.9155 0 0 1 0 -31.831"
-                            stroke-dasharray="0, 100"
-                        />
-                    </svg>
+            <div class="stats-summary">
+                <p class="stat-line stat-line-secondary">
+                    <span class="stat-label">You need</span>
+                    <span class="stat-value stat-value-secondary" id="monthlyAvg">0</span>
+                    <span class="stat-label" id="monthlyUnit">more hours this month</span>
+                </p>
+                <p class="stat-line stat-line-tertiary planned-summary">
+                    <span class="stat-label">You have</span>
+                    <span class="stat-value stat-value-secondary" id="plannedHours">0</span>
+                    <span class="stat-label" id="plannedUnit">hours planned this month</span>
+                </p>
+                <p class="stat-line stat-line-tertiary weekly-summary">
+                    <span class="stat-meta"><span id="weeklyNeeded">0</span> more hour(s) needed this week</span>
+                </p>
+                <div class="progress-bar progress-bar-hero" aria-label="Year progress toward goal">
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" id="progressBarFill"></div>
+                        <span class="progress-bar-current" id="totalHours">0 hrs</span>
+                        <span class="progress-bar-goal"><span id="goalHours">600</span> hrs</span>
+                    </div>
                 </div>
-            </div>
-            <div class="stat-card monthly-avg">
-                <span class="stat-value" id="monthlyAvg">0</span>
-                <span class="stat-label">hrs/month needed</span>
-                <span class="stat-sublabel"><span id="weeklyNeeded">0</span> more hrs need this wk</span>
-                <span class="stat-sublabel planned-label"><span id="plannedHours">0</span> hours planned</span>
             </div>
         </section>
 
@@ -338,4 +328,3 @@
     </script>
 </body>
 </html>
-
