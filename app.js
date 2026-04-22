@@ -8,7 +8,7 @@ class CadenceApp {
         this.currentStatsTotal = 0;
         this.currentStatsGoal = this.data.goal;
         this.statsAnimationFrame = null;
-        this.monthlySparkFrame = null;
+        this.goalBurstFrame = null;
         this.loadTheme();
         this.disableScrollRestoration();
         this.init();
@@ -54,6 +54,7 @@ class CadenceApp {
         const startPercentage = startGoal > 0 ? Math.min((startTotal / startGoal) * 100, 100) : 0;
         const endMarker = endPercentage >= 100 ? 100 : Math.min(Math.max(endPercentage, 6), 94);
         const startMarker = startPercentage >= 100 ? 100 : Math.min(Math.max(startPercentage, 6), 94);
+        const shouldBurstGoal = startTotal < startGoal && endTotal >= endGoal;
         this.currentStatsGoal = endGoal;
 
         const tick = (now) => {
@@ -72,6 +73,9 @@ class CadenceApp {
                 this.statsAnimationFrame = requestAnimationFrame(tick);
             } else {
                 this.currentStatsTotal = endTotal;
+                if (shouldBurstGoal) {
+                    this.burstGoalConfetti();
+                }
                 this.statsAnimationFrame = null;
             }
         };
@@ -80,63 +84,71 @@ class CadenceApp {
     }
 
     clearMonthlyCelebration() {
-        if (this.monthlySparkFrame) {
-            cancelAnimationFrame(this.monthlySparkFrame);
-            this.monthlySparkFrame = null;
+        this.elements.monthlyCelebration?.classList.remove('celebrate-zero');
+    }
+
+    clearGoalBurst() {
+        if (this.goalBurstFrame) {
+            cancelAnimationFrame(this.goalBurstFrame);
+            this.goalBurstFrame = null;
         }
 
-        const canvas = this.elements.monthlySparkCanvas;
+        const canvas = this.elements.progressBarConfettiCanvas;
         if (canvas) {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
-
-        this.elements.monthlyCelebration?.classList.remove('celebrate-zero');
     }
 
-    celebrateMonthlyZero() {
-        const canvas = this.elements.monthlySparkCanvas;
-        const wrap = this.elements.monthlyCelebration;
-        const target = this.elements.monthlyAvg;
+    burstGoalConfetti() {
+        const canvas = this.elements.progressBarConfettiCanvas;
+        const bar = this.elements.progressBarHero;
+        const fill = this.elements.progressBarFill;
 
-        if (!canvas || !wrap || !target) return;
+        if (!canvas || !bar || !fill) return;
 
-        if (this.monthlySparkFrame) {
-            cancelAnimationFrame(this.monthlySparkFrame);
-            this.monthlySparkFrame = null;
+        if (this.goalBurstFrame) {
+            cancelAnimationFrame(this.goalBurstFrame);
+            this.goalBurstFrame = null;
         }
 
-        wrap.classList.remove('celebrate-zero');
-        void wrap.offsetWidth;
-        wrap.classList.add('celebrate-zero');
+        bar.classList.remove('goal-burst');
+        void bar.offsetWidth;
+        bar.classList.add('goal-burst');
 
-        const wrapRect = wrap.getBoundingClientRect();
-        const targetRect = target.getBoundingClientRect();
-        const insetX = 18;
-        const insetY = 14;
-        canvas.width = Math.max(1, Math.ceil(wrapRect.width + insetX * 2));
-        canvas.height = Math.max(1, Math.ceil(wrapRect.height + insetY * 2));
-        canvas.style.left = `${-insetX}px`;
-        canvas.style.top = `${-insetY}px`;
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        const viewportWidth = Math.max(1, Math.ceil(window.innerWidth));
+        const viewportHeight = Math.max(1, Math.ceil(window.innerHeight));
+        canvas.width = Math.ceil(viewportWidth * dpr);
+        canvas.height = Math.ceil(viewportHeight * dpr);
+        canvas.style.width = `${viewportWidth}px`;
+        canvas.style.height = `${viewportHeight}px`;
+        canvas.style.left = '0px';
+        canvas.style.top = '0px';
 
         const ctx = canvas.getContext('2d');
-        const originX = (targetRect.left - wrapRect.left) + (targetRect.width / 2) + insetX;
-        const originY = (targetRect.top - wrapRect.top) + (targetRect.height / 2) + insetY;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        const particles = Array.from({ length: 28 }, () => {
-            const angle = (Math.PI * 2 * Math.random()) - Math.PI / 2;
-            const speed = 2.2 + Math.random() * 4.2;
+        const fillRect = fill.getBoundingClientRect();
+        const originX = fillRect.right;
+        const originY = fillRect.top + (fillRect.height / 2);
+
+        const palette = ['rgba(245, 158, 11, 0.95)', 'rgba(255, 255, 255, 0.95)', 'rgba(255, 214, 102, 0.95)', 'rgba(251, 191, 36, 0.95)'];
+        const particles = Array.from({ length: 72 }, (_, i) => {
+            const angle = (-Math.PI / 2) + (Math.random() * Math.PI * 2);
+            const speed = 4 + Math.random() * 10.5;
             return {
                 x: originX,
                 y: originY,
                 vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed - (1.4 + Math.random() * 1.8),
+                vy: Math.sin(angle) * speed - (3 + Math.random() * 4.5),
                 rot: Math.random() * Math.PI,
-                vr: (Math.random() - 0.5) * 0.25,
+                vr: (Math.random() - 0.5) * 0.7,
                 life: 0,
-                ttl: 700 + Math.random() * 420,
-                size: 3.5 + Math.random() * 5.5,
-                glow: Math.random() > 0.55,
+                ttl: 1100 + Math.random() * 900,
+                size: 4 + Math.random() * 7,
+                color: palette[i % palette.length],
+                shape: Math.random() > 0.45 ? 'star' : 'rect',
             };
         });
 
@@ -155,25 +167,19 @@ class CadenceApp {
         };
 
         const start = performance.now();
-        const sparkDelay = 220;
         const duration = 1400;
 
         const frame = (now) => {
-            const elapsed = now - start;
+            const elapsed = Math.min((now - start) / duration, 1);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            if (elapsed < sparkDelay) {
-                this.monthlySparkFrame = requestAnimationFrame(frame);
-                return;
-            }
-
-            const sparkT = Math.min((elapsed - sparkDelay) / (duration - sparkDelay), 1);
 
             for (const p of particles) {
                 p.life += 16;
                 p.x += p.vx;
                 p.y += p.vy;
-                p.vy += 0.08;
+                p.vy += 0.11;
+                p.vx *= 0.992;
+                p.vr += 0.001;
                 p.rot += p.vr;
 
                 const alpha = Math.max(0, 1 - (p.life / p.ttl));
@@ -181,23 +187,43 @@ class CadenceApp {
 
                 ctx.save();
                 ctx.globalAlpha = alpha;
-                ctx.fillStyle = p.glow ? 'rgba(255, 224, 138, 0.95)' : 'rgba(255, 255, 255, 0.92)';
-                ctx.shadowColor = 'rgba(245, 158, 11, 0.55)';
-                ctx.shadowBlur = p.glow ? 12 : 6;
-                drawStar(p.x, p.y, 5, p.size, p.size * 0.45, p.rot);
-                ctx.fill();
+                ctx.fillStyle = p.color;
+                ctx.shadowColor = 'rgba(245, 158, 11, 0.6)';
+                ctx.shadowBlur = 10;
+
+                if (p.shape === 'star') {
+                    drawStar(p.x, p.y, 5, p.size, p.size * 0.45, p.rot);
+                    ctx.fill();
+                } else {
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rot);
+                    ctx.fillRect(-p.size * 0.35, -p.size * 0.18, p.size * 0.7, p.size * 1.25);
+                }
+
                 ctx.restore();
             }
 
-            if (sparkT < 1) {
-                this.monthlySparkFrame = requestAnimationFrame(frame);
+            if (elapsed < 1) {
+                this.goalBurstFrame = requestAnimationFrame(frame);
             } else {
-                this.monthlySparkFrame = null;
+                this.goalBurstFrame = null;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+                bar.classList.remove('goal-burst');
             }
         };
 
-        this.monthlySparkFrame = requestAnimationFrame(frame);
+        this.goalBurstFrame = requestAnimationFrame(frame);
+    }
+
+    celebrateMonthlyZero() {
+        const wrap = this.elements.monthlyCelebration;
+        const target = this.elements.monthlyAvg;
+
+        if (!wrap || !target) return;
+
+        wrap.classList.remove('celebrate-zero');
+        void wrap.offsetWidth;
+        wrap.classList.add('celebrate-zero');
     }
 
     // ===== Date helpers (for PWA resume) =====
@@ -646,10 +672,10 @@ class CadenceApp {
         this.elements = {
             progressBarHero: document.getElementById('progressBarHero'),
             progressBarFill: document.getElementById('progressBarFill'),
+            progressBarConfettiCanvas: document.getElementById('progressBarConfettiCanvas'),
             totalHours: document.getElementById('totalHours'),
             progressBarNote: document.getElementById('progressBarNote'),
             monthlyCelebration: document.getElementById('monthlyCelebration'),
-            monthlySparkCanvas: document.getElementById('monthlySparkCanvas'),
             monthlyAvg: document.getElementById('monthlyAvg'),
             monthlyUnit: document.getElementById('monthlyUnit'),
             weeklyLine: document.getElementById('weeklyLine'),
@@ -806,6 +832,10 @@ class CadenceApp {
             this.elements.progressBarFill.style.width = `${percentage}%`;
             this.elements.progressBarHero.style.setProperty('--progress', `${this.getSafeMarkerProgress(percentage >= 100 ? 100 : Math.min(Math.max(percentage, 6), 94))}%`);
             return;
+        }
+
+        if (total < goal) {
+            this.clearGoalBurst();
         }
 
         this.animateStatsChange(this.currentStatsTotal, this.currentStatsGoal, total, goal);
