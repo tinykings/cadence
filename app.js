@@ -10,6 +10,8 @@ class CadenceApp {
         this.statsAnimationFrame = null;
         this.goalBurstFrame = null;
         this.scrollLockY = 0;
+        this.lockedViewportHeight = window.innerHeight;
+        this.boundSyncLockedViewport = this.syncLockedViewport.bind(this);
         this.loadTheme();
         this.disableScrollRestoration();
         this.init();
@@ -27,14 +29,34 @@ class CadenceApp {
 
     lockBodyScroll() {
         this.scrollLockY = window.scrollY || document.documentElement.scrollTop || 0;
+        this.lockedViewportHeight = window.visualViewport?.height || window.innerHeight;
         document.body.classList.add('modal-open');
-        document.body.style.top = `-${this.scrollLockY}px`;
+        document.documentElement.style.setProperty('--locked-viewport-height', `${this.lockedViewportHeight}px`);
+        this.syncLockedViewport();
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', this.boundSyncLockedViewport);
+            window.visualViewport.addEventListener('scroll', this.boundSyncLockedViewport);
+        }
     }
 
     unlockBodyScroll() {
+        if (window.visualViewport) {
+            window.visualViewport.removeEventListener('resize', this.boundSyncLockedViewport);
+            window.visualViewport.removeEventListener('scroll', this.boundSyncLockedViewport);
+        }
+
         document.body.classList.remove('modal-open');
         document.body.style.top = '';
+        document.documentElement.style.removeProperty('--viewport-offset-top');
+        document.documentElement.style.removeProperty('--locked-viewport-height');
         window.scrollTo(0, this.scrollLockY);
+    }
+
+    syncLockedViewport() {
+        const viewportOffsetTop = window.visualViewport?.offsetTop || 0;
+        document.body.style.top = `${-(this.scrollLockY - viewportOffsetTop)}px`;
+        document.documentElement.style.setProperty('--viewport-offset-top', `${viewportOffsetTop}px`);
     }
 
     focusWithoutScroll(element) {
