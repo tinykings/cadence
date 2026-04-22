@@ -279,16 +279,9 @@ body {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
 }
 
-.progress-bar-goal {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    z-index: 2;
-    white-space: nowrap;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    color: var(--text-primary);
-    opacity: 0.8;
+.progress-bar-hero.is-full .progress-bar-current {
+    left: auto;
+    right: 8px;
     transform: translateY(-50%);
 }
 
@@ -1099,12 +1092,12 @@ body {
         padding: 3px 8px;
     }
 
-    .progress-bar-goal {
-        font-size: 0.66rem;
-    }
-
     .progress-bar-track {
         height: 28px;
+    }
+
+    .progress-bar-hero.is-full .progress-bar-current {
+        right: 6px;
     }
     
     .current-month-section {

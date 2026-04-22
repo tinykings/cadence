@@ -5,7 +5,9 @@ class CadenceApp {
         this.data = this.loadData();
         this.currentDate = new Date();
         this._currentDateKey = this.getDateKey(this.currentDate);
-        this.statsAnimated = false;
+        this.currentStatsTotal = 0;
+        this.currentStatsGoal = this.data.goal;
+        this.statsAnimationFrame = null;
         this.loadTheme();
         this.disableScrollRestoration();
         this.init();
@@ -25,25 +27,42 @@ class CadenceApp {
         return value.toFixed(1).replace(/\.0$/, '');
     }
 
-    animateProgressLoad(total, percentage, markerProgress) {
+    animateStatsChange(startTotal, startGoal, endTotal, endGoal) {
+        if (this.statsAnimationFrame) {
+            cancelAnimationFrame(this.statsAnimationFrame);
+            this.statsAnimationFrame = null;
+        }
+
         const duration = 1400;
         const start = performance.now();
+        const endPercentage = endGoal > 0 ? Math.min((endTotal / endGoal) * 100, 100) : 0;
+        const startPercentage = startGoal > 0 ? Math.min((startTotal / startGoal) * 100, 100) : 0;
+        const endMarker = endPercentage >= 100 ? 100 : Math.min(Math.max(endPercentage, 6), 94);
+        const startMarker = startPercentage >= 100 ? 100 : Math.min(Math.max(startPercentage, 6), 94);
+        this.currentStatsGoal = endGoal;
 
         const tick = (now) => {
             const elapsed = Math.min((now - start) / duration, 1);
             const eased = 1 - Math.pow(1 - elapsed, 3);
-            const current = total * eased;
+            const current = startTotal + ((endTotal - startTotal) * eased);
+            const currentPercentage = startPercentage + ((endPercentage - startPercentage) * eased);
+            const currentMarker = startMarker + ((endMarker - startMarker) * eased);
 
             this.elements.totalHours.textContent = this.formatHours(current);
-            this.elements.progressBarFill.style.width = `${percentage * eased}%`;
-            this.elements.progressBarHero.style.setProperty('--progress', `${markerProgress * eased}%`);
+            this.elements.progressBarFill.style.width = `${currentPercentage}%`;
+            this.elements.progressBarHero.style.setProperty('--progress', `${currentMarker}%`);
+            this.currentStatsTotal = current;
 
             if (elapsed < 1) {
-                requestAnimationFrame(tick);
+                this.statsAnimationFrame = requestAnimationFrame(tick);
+            } else {
+                this.currentStatsTotal = endTotal;
+                this.elements.progressBarHero.classList.toggle('is-full', endTotal >= endGoal);
+                this.statsAnimationFrame = null;
             }
         };
 
-        requestAnimationFrame(tick);
+        this.statsAnimationFrame = requestAnimationFrame(tick);
     }
 
     // ===== Date helpers (for PWA resume) =====
@@ -493,7 +512,6 @@ class CadenceApp {
             progressBarHero: document.getElementById('progressBarHero'),
             progressBarFill: document.getElementById('progressBarFill'),
             totalHours: document.getElementById('totalHours'),
-            goalHours: document.getElementById('goalHours'),
             monthlyAvg: document.getElementById('monthlyAvg'),
             monthlyUnit: document.getElementById('monthlyUnit'),
             weeklyLine: document.getElementById('weeklyLine'),
@@ -625,30 +643,26 @@ class CadenceApp {
         const total = this.getYearTotal();
         const goal = this.data.goal;
         const percentage = Math.min((total / goal) * 100, 100);
-        const markerProgress = Math.min(Math.max(percentage, 6), 94);
         const avgNeeded = this.getMonthlyAverageNeeded();
         const weeklyNeeded = this.getWeeklyHoursNeeded();
         const plannedMonth = this.getPlannedHoursForMonth(this.currentDate.getFullYear(), this.currentDate.getMonth());
         
-        this.elements.totalHours.textContent = this.formatHours(total);
-        this.elements.goalHours.textContent = goal;
         this.elements.monthlyAvg.textContent = avgNeeded;
         this.elements.monthlyUnit.textContent = avgNeeded === 1 ? 'more hour this month' : 'more hours this month';
         this.elements.weeklyLine.textContent = `${weeklyNeeded} more ${weeklyNeeded === 1 ? 'hour' : 'hours'} needed this week`;
         this.elements.plannedLine.textContent = `You have ${plannedMonth} ${plannedMonth === 1 ? 'hour' : 'hours'} planned`;
 
-        if (!this.statsAnimated) {
-            this.elements.totalHours.textContent = '0';
-            this.elements.progressBarFill.style.width = '0%';
-            this.elements.progressBarHero.style.setProperty('--progress', '0%');
-            this.animateProgressLoad(total, percentage, markerProgress);
-            this.statsAnimated = true;
+        const statsChanged = Math.abs(this.currentStatsTotal - total) > 0.01 || this.currentStatsGoal !== goal;
+
+        if (!statsChanged && !this.statsAnimationFrame) {
+            this.elements.totalHours.textContent = this.formatHours(total);
+            this.elements.progressBarHero.classList.toggle('is-full', total >= goal);
+            this.elements.progressBarFill.style.width = `${percentage}%`;
+            this.elements.progressBarHero.style.setProperty('--progress', `${percentage >= 100 ? 100 : Math.min(Math.max(percentage, 6), 94)}%`);
             return;
         }
 
-        this.elements.totalHours.textContent = this.formatHours(total);
-        this.elements.progressBarFill.style.width = `${percentage}%`;
-        this.elements.progressBarHero.style.setProperty('--progress', `${markerProgress}%`);
+        this.animateStatsChange(this.currentStatsTotal, this.currentStatsGoal, total, goal);
     }
 
     renderCurrentMonth() {
