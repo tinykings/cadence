@@ -140,12 +140,6 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
-body.modal-open {
-    position: fixed;
-    width: 100%;
-    overflow: hidden;
-}
-
 /* ===== App Container ===== */
 .app-container {
     max-width: 480px;
@@ -939,8 +933,6 @@ body.modal-open {
     align-items: center;
     justify-content: center;
     padding: 20px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
     opacity: 0;
     visibility: hidden;
     transition: all var(--transition-normal);
