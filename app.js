@@ -42,6 +42,20 @@ class CadenceApp {
         return Math.min(progress, Math.max(6, maxProgress));
     }
 
+    getGoalShineIntensity(total, goal) {
+        const remaining = Math.max(goal - total, 0);
+        const normalized = Math.min(Math.max(1 - (remaining / 100), 0), 1);
+        return normalized * normalized * (3 - (2 * normalized));
+    }
+
+    updateProgressBarGlow(total, goal) {
+        const shine = this.getGoalShineIntensity(total, goal);
+        const glow = Math.pow(shine, 0.75);
+
+        this.elements.progressBarHero.style.setProperty('--goal-shine', shine.toFixed(3));
+        this.elements.progressBarHero.style.setProperty('--goal-glow', glow.toFixed(3));
+    }
+
     animateStatsChange(startTotal, startGoal, endTotal, endGoal) {
         if (this.statsAnimationFrame) {
             cancelAnimationFrame(this.statsAnimationFrame);
@@ -67,6 +81,7 @@ class CadenceApp {
             this.elements.totalHours.textContent = this.formatHours(current);
             this.elements.progressBarFill.style.width = `${currentPercentage}%`;
             this.elements.progressBarHero.style.setProperty('--progress', `${currentMarker}%`);
+            this.updateProgressBarGlow(current, endGoal);
             this.currentStatsTotal = current;
 
             if (elapsed < 1) {
@@ -818,6 +833,7 @@ class CadenceApp {
         this.elements.progressBarNote.textContent = total >= goal
             ? `You reached your goal of ${goal}!`
             : `You have ${Math.max(goal - total, 0).toFixed(1).replace(/\.0$/, '')} hours remaining to reach your goal of ${goal}`;
+        this.updateProgressBarGlow(total, goal);
 
         if (avgNeeded === 0) {
             this.celebrateMonthlyZero();

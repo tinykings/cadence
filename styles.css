@@ -286,6 +286,7 @@ body {
 .progress-bar-hero {
     margin-bottom: 16px;
     --progress: 0%;
+    --goal-glow: 0;
     position: relative;
 }
 
@@ -299,6 +300,19 @@ body {
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
+.progress-bar-track::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: calc(0.15 + (0.85 * var(--goal-glow, 0)));
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+        0 0 14px rgba(245, 158, 11, 0.24),
+        0 0 28px rgba(245, 158, 11, 0.08);
+}
+
 .progress-bar-fill {
     position: absolute;
     left: 0;
@@ -308,7 +322,35 @@ body {
     border-radius: inherit;
     background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), var(--accent-subtle), rgba(255, 255, 255, 0.09));
     opacity: 0.8;
-    box-shadow: 0 0 14px var(--accent-glow);
+    overflow: hidden;
+}
+
+.progress-bar-fill::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.progress-bar-fill::before {
+    opacity: var(--goal-shine, 0);
+    background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06)),
+        repeating-linear-gradient(
+            90deg,
+            rgba(255, 0, 122, 0.12) 0 24px,
+            rgba(255, 176, 0, 0.16) 40px 64px,
+            rgba(255, 247, 0, 0.14) 80px 104px,
+            rgba(77, 255, 164, 0.13) 120px 144px,
+            rgba(0, 201, 255, 0.15) 160px 184px,
+            rgba(124, 92, 255, 0.15) 200px 224px,
+            rgba(255, 0, 122, 0.12) 240px 264px
+        );
+    background-size: 200% 100%, 264px 100%;
+    mix-blend-mode: screen;
+    filter: blur(10px) saturate(1.06) contrast(1.01);
+    will-change: background-position;
+    animation: rainbowDrift 5.5s linear infinite;
 }
 
 .progress-bar-hero.goal-burst .progress-bar-track {
@@ -317,7 +359,9 @@ body {
 
 .progress-bar-hero.goal-burst .progress-bar-fill {
     opacity: 1;
-    box-shadow: 0 0 22px rgba(245, 158, 11, 0.45), 0 0 34px rgba(245, 158, 11, 0.2);
+    box-shadow:
+        0 0 24px rgba(245, 158, 11, 0.42),
+        0 0 40px rgba(245, 158, 11, 0.18);
 }
 
 .progress-bar-current {
@@ -360,6 +404,11 @@ body {
     30% { transform: scale(1.02); }
     55% { transform: scale(0.985); }
     100% { transform: scale(1); }
+}
+
+@keyframes rainbowDrift {
+    0% { background-position: 0 0, 0 0; }
+    100% { background-position: 200% 0, 264px 0; }
 }
 
 /* ===== Current Month Section ===== */
