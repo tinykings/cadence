@@ -6,7 +6,18 @@ class CadenceApp {
         this.currentDate = new Date();
         this._currentDateKey = this.getDateKey(this.currentDate);
         this.loadTheme();
+        this.disableScrollRestoration();
         this.init();
+    }
+
+    disableScrollRestoration() {
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+    }
+
+    resetScrollPosition() {
+        window.scrollTo(0, 0);
     }
 
     // ===== Date helpers (for PWA resume) =====
@@ -448,6 +459,7 @@ class CadenceApp {
         this.bindEvents();
         this.render();
         this.bindResumeRefresh();
+        this.resetScrollPosition();
     }
 
     cacheElements() {
@@ -457,9 +469,8 @@ class CadenceApp {
             totalHours: document.getElementById('totalHours'),
             monthlyAvg: document.getElementById('monthlyAvg'),
             monthlyUnit: document.getElementById('monthlyUnit'),
-            plannedUnit: document.getElementById('plannedUnit'),
-            weeklyNeeded: document.getElementById('weeklyNeeded'),
-            plannedHours: document.getElementById('plannedHours'),
+            weeklyLine: document.getElementById('weeklyLine'),
+            plannedLine: document.getElementById('plannedLine'),
             currentMonthName: document.getElementById('currentMonthName'),
             currentCalendar: document.getElementById('currentCalendar'),
             currentMonthHours: document.getElementById('currentMonthHours'),
@@ -567,7 +578,12 @@ class CadenceApp {
         window.addEventListener('focus', onResume);
 
         // Handles bfcache restores on some browsers.
-        window.addEventListener('pageshow', onResume);
+        window.addEventListener('pageshow', (e) => {
+            onResume();
+            if (!e.persisted) {
+                this.resetScrollPosition();
+            }
+        });
     }
 
     // ===== Rendering =====
@@ -591,9 +607,8 @@ class CadenceApp {
         this.elements.goalHours.textContent = goal;
         this.elements.monthlyAvg.textContent = avgNeeded;
         this.elements.monthlyUnit.textContent = avgNeeded === 1 ? 'more hour this month' : 'more hours this month';
-        this.elements.plannedUnit.textContent = plannedMonth === 1 ? 'hour planned this month' : 'hours planned this month';
-        this.elements.weeklyNeeded.textContent = weeklyNeeded;
-        this.elements.plannedHours.textContent = plannedMonth;
+        this.elements.weeklyLine.textContent = `${weeklyNeeded} more ${weeklyNeeded === 1 ? 'hour' : 'hours'} needed this week`;
+        this.elements.plannedLine.textContent = `You have ${plannedMonth} ${plannedMonth === 1 ? 'hour' : 'hours'} planned`;
         this.elements.progressBarFill.style.width = `${percentage}%`;
         this.elements.totalHours.style.setProperty('--progress', `${markerProgress}%`);
     }
