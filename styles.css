@@ -170,6 +170,10 @@ body {
     z-index: 1;
 }
 
+.monthly-summary .stat-label {
+    font-size: 20px;
+}
+
 .monthly-celebration.celebrate-zero .monthly-summary,
 .monthly-celebration.celebrate-zero #monthlyAvg {
     animation: zeroShakePop 1400ms cubic-bezier(0.2, 0.85, 0.25, 1);
@@ -216,17 +220,17 @@ body {
 .planned-summary .stat-label,
 .planned-summary .stat-value,
 .weekly-summary .stat-meta {
-    font-size: 0.8rem;
+    font-size: 17px;
     color: var(--text-muted);
 }
 
 .planned-summary .stat-value {
-    font-size: 1rem;
+    font-size: 17px;
     font-weight: 400;
 }
 
 .weekly-summary .stat-meta {
-    font-size: 0.8rem;
+    font-size: 17px;
     font-weight: 400;
 }
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cadence-v8.5';
+const CACHE_NAME = 'cadence-v8.6';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
