@@ -455,7 +455,7 @@ body {
 }
 
 .month-header h2 {
-    font-size: 1.35rem;
+    font-size: calc(1.35rem + 5px);
     font-weight: 600;
     color: var(--text-primary);
 }
