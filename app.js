@@ -647,6 +647,7 @@ class CadenceApp {
             progressBarHero: document.getElementById('progressBarHero'),
             progressBarFill: document.getElementById('progressBarFill'),
             totalHours: document.getElementById('totalHours'),
+            progressBarNote: document.getElementById('progressBarNote'),
             monthlyCelebration: document.getElementById('monthlyCelebration'),
             monthlySparkCanvas: document.getElementById('monthlySparkCanvas'),
             monthlyAvg: document.getElementById('monthlyAvg'),
@@ -788,6 +789,9 @@ class CadenceApp {
         this.elements.monthlyUnit.textContent = avgNeeded === 1 ? 'more hour this month' : 'more hours this month';
         this.elements.weeklyLine.textContent = `${weeklyNeeded} more ${weeklyNeeded === 1 ? 'hour' : 'hours'} needed this week`;
         this.elements.plannedLine.textContent = `You have ${plannedMonth} ${plannedMonth === 1 ? 'hour' : 'hours'} planned`;
+        this.elements.progressBarNote.textContent = total >= goal
+            ? `You reached your goal of ${goal}!`
+            : `You have ${Math.max(goal - total, 0).toFixed(1).replace(/\.0$/, '')} hours remaining to reach your goal of ${goal}`;
 
         if (avgNeeded === 0) {
             this.celebrateMonthlyZero();
