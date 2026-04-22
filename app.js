@@ -9,6 +9,7 @@ class CadenceApp {
         this.currentStatsGoal = this.data.goal;
         this.statsAnimationFrame = null;
         this.goalBurstFrame = null;
+        this.scrollLockY = 0;
         this.loadTheme();
         this.disableScrollRestoration();
         this.init();
@@ -22,6 +23,28 @@ class CadenceApp {
 
     resetScrollPosition() {
         window.scrollTo(0, 0);
+    }
+
+    lockBodyScroll() {
+        this.scrollLockY = window.scrollY || document.documentElement.scrollTop || 0;
+        document.body.classList.add('modal-open');
+        document.body.style.top = `-${this.scrollLockY}px`;
+    }
+
+    unlockBodyScroll() {
+        document.body.classList.remove('modal-open');
+        document.body.style.top = '';
+        window.scrollTo(0, this.scrollLockY);
+    }
+
+    focusWithoutScroll(element) {
+        if (!element) return;
+
+        try {
+            element.focus({ preventScroll: true });
+        } catch {
+            element.focus();
+        }
     }
 
     formatHours(value) {
@@ -1175,8 +1198,9 @@ class CadenceApp {
         });
         
         // Show modal
+        this.lockBodyScroll();
         this.elements.addTimeModal.classList.add('active');
-        this.elements.hoursInput.focus();
+        this.focusWithoutScroll(this.elements.hoursInput);
     }
 
     updateModalInputsForDay(year, month, day) {
@@ -1230,6 +1254,7 @@ class CadenceApp {
 
     closeAddModal() {
         this.elements.addTimeModal.classList.remove('active');
+        this.unlockBodyScroll();
     }
 
     scrollToPageTop() {
@@ -1275,8 +1300,9 @@ class CadenceApp {
         }
         
         this.updateThemePickerUI();
+        this.lockBodyScroll();
         this.elements.settingsModal.classList.add('active');
-        this.elements.goalInput.focus();
+        this.focusWithoutScroll(this.elements.goalInput);
     }
 
     updateThemePickerUI() {
@@ -1288,6 +1314,7 @@ class CadenceApp {
 
     closeSettingsModal() {
         this.elements.settingsModal.classList.remove('active');
+        this.unlockBodyScroll();
     }
 
     handleSaveSettings() {

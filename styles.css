@@ -140,6 +140,13 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
+body.modal-open {
+    position: fixed;
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+}
+
 /* ===== App Container ===== */
 .app-container {
     max-width: 480px;
