@@ -707,8 +707,7 @@ class CadenceApp {
         
         // We only need to reach the monthly target. Subtract what was already done this month before this week.
         const monthTotals = this.getMonthTotals(year, month);
-        const plannedInMonth = this.getPlannedHoursForMonth(year, month);
-        const workDoneInMonthBeforeThisWeek = monthTotals.total - plannedInMonth - workDoneInWeekBucket;
+        const workDoneInMonthBeforeThisWeek = monthTotals.total - workDoneInWeekBucket;
         const remainingForMonthAtStart = Math.max(0, monthlyNeededAtStart - workDoneInMonthBeforeThisWeek);
         
         const weeklyGoal = Math.ceil(remainingForMonthAtStart / weeksRemainingAtStart);
